@@ -6,18 +6,109 @@ import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
 import Link from 'next/link';
 import { GoEngine, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp } from 'firebase/database';
 
 export default function GoArena() {
   const [engine, setEngine] = useState(() => { const e = new GoEngine(19); if (typeof window !== 'undefined') { const s = localStorage.getItem('tdv-go'); if (s) e.load(s); } return e; });
 
   const [board, setBoard] = useState<BoardState>(engine.board);
+  const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [myColor, setMyColor] = useState<'b' | 'w'>('b');
+
   useEffect(() => { localStorage.setItem('tdv-go', engine.serialize()); }, [board, engine.turn]);
   const [status, setStatus] = useState<string>('Oyun Başladı. Gediş: Qaralar');
   
-  const whitePlayer = { name: "Bot (Ağ)", elo: 1520 };
-  const blackPlayer = { name: "Sən (Qara)", elo: 1450 };
+  const whitePlayer = { name: mode === 'multiplayer' ? (myColor === 'w' ? user?.displayName || 'Siz' : 'Rəqib') : 'Bot (Ağ)', elo: 1520 };
+  const blackPlayer = { name: mode === 'multiplayer' ? (myColor === 'b' ? user?.displayName || 'Siz' : 'Rəqib') : 'Sən (Qara)', elo: 1450 };
 
   const BOARD_SIZE = 19;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (mode === 'multiplayer' && user && roomId) {
+      const gameRef = ref(db, `games/go/${roomId}`);
+      const unsubscribe = onValue(gameRef, (snap) => {
+        const data = snap.val();
+        if (data && data.state && data.state !== engine.serialize()) {
+          const newEngine = new GoEngine(BOARD_SIZE);
+          newEngine.load(data.state);
+          setEngine(newEngine);
+          setBoard(newEngine.board);
+          
+          if (newEngine.winner) {
+            if (newEngine.winner === 'draw') setStatus('Heç-heçə!');
+            else setStatus(newEngine.winner === myColor ? 'Siz Qalib Gəldiniz!' : 'Rəqib Qalib Gəldi!');
+          } else {
+            setStatus(`Gediş sırası: ${newEngine.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [mode, roomId, user, engine, myColor]);
+
+  const findMatch = async () => {
+    if (!user) {
+      alert('Multiplayer oynamaq üçün hesabınıza daxil olmalısınız!');
+      return;
+    }
+    setIsSearching(true);
+    setStatus('Rəqib axtarılır...');
+
+    const waitingRef = ref(db, 'matchmaking/go/waiting');
+    const snap = await get(waitingRef);
+
+    if (snap.exists()) {
+      const opponentId = snap.val();
+      if (opponentId === user.uid) return;
+
+      await remove(waitingRef);
+      const newRoomRef = push(ref(db, 'games/go'));
+      const newRoomId = newRoomRef.key;
+
+      await set(newRoomRef, {
+        white: user.uid, // Opponent was waiting, let them be black
+        black: opponentId,
+        state: new GoEngine(BOARD_SIZE).serialize(),
+        status: 'playing',
+        timestamp: serverTimestamp()
+      });
+
+      await set(ref(db, `users/${opponentId}/currentMatch`), newRoomId);
+      
+      setRoomId(newRoomId);
+      setMyColor('w');
+      resetGame();
+      setStatus('Oyun Başladı! Uğurlar.');
+      setIsSearching(false);
+    } else {
+      await set(waitingRef, user.uid);
+      onDisconnect(waitingRef).remove();
+
+      const matchRef = ref(db, `users/${user.uid}/currentMatch`);
+      onValue(matchRef, (snapMatch) => {
+        const foundRoomId = snapMatch.val();
+        if (foundRoomId) {
+          setRoomId(foundRoomId);
+          setMyColor('b');
+          resetGame();
+          setStatus('Oyun Başladı! Uğurlar.');
+          setIsSearching(false);
+          remove(matchRef);
+        }
+      });
+    }
+  };
+  
 
   const getStoneCount = (b: BoardState) => b.flat().filter(x => x !== null).length;
 
@@ -25,7 +116,7 @@ export default function GoArena() {
     updateStatus();
     
     // Bot plays white
-    if (engine.turn === 'w') {
+    if (mode === 'bot' && engine.turn === 'w' && !engine.winner) {
       setTimeout(() => {
         const preCount = getStoneCount(engine.board);
         if (engine.playBotMove()) {
