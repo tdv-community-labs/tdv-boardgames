@@ -10,6 +10,7 @@ import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect, update } from 'firebase/database';
+import { updateStreakAndQuests } from '@/utils/streaks';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';

@@ -8,6 +8,7 @@ import { Connect4Engine, BoardState } from './engine';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '@/lib/firebase';
+import { updateStreakAndQuests } from '@/utils/streaks';
 import { ref, get, set, update, remove, onValue, push, onDisconnect } from 'firebase/database';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import GameChat from '@/components/GameChat';
@@ -346,7 +347,7 @@ export default function Connect4Arena() {
           </div>
         )}
 
-        <GameChat roomId={roomId} gameName="connect4" userName={user?.displayName || "Oyunçu"} />
+        <GameChat roomId={roomId} gameName="connect4" userName={user?.displayName || "Oyunï¿½u"} />
       </div>
     </div>
   );

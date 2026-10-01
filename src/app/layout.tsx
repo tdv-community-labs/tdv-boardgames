@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from 'react-hot-toast';
+import DailyQuests from '@/components/DailyQuests';
 
 export default function RootLayout({
   children,
@@ -29,6 +30,7 @@ export default function RootLayout({
         </div>
         
         <Navbar />
+        <DailyQuests />
 
         <main className="pt-24 min-h-screen">
           {children}
