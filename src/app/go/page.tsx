@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
+import {  Clock, ArrowLeft, Flag, Shield, Swords , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import GameChat from '@/components/GameChat';
 import { GoEngine, BoardState } from './engine';
@@ -97,7 +97,31 @@ export default function GoArena() {
     }
   }, [engine.winner, mode, user, eloUpdated, myColor]);
 
-  const findMatch = async () => {
+  
+  const createPrivateRoom = async () => {
+    if (!user) { alert('Dostla oynamaq üçün hesabınıza daxil olun!'); return; }
+    const newRoomRef = push(ref(db, `games/go`));
+    
+    // Depending on game, initial state varies
+    let initialState = '';
+    
+    
+    initialState = new GoEngine(19).serialize();
+    
+    
+    await set(newRoomRef, { state: initialState, status: 'waiting_for_friend' });
+    setRoomId(newRoomRef.key);
+    setMyColor('b'); // Chess/Checkers white first, Go/Othello black first
+    setMode('multiplayer');
+    
+    const link = `${window.location.origin}/go?room=${newRoomRef.key}`;
+    navigator.clipboard.writeText(link).then(() => {
+       toast.success('Link kopyalandı! Dostunuza göndərin.', { icon: '🔗', duration: 6000 });
+       setStatus('Dostunuzun qoşulması gözlənilir...');
+    });
+  };
+
+  const findMatch =  async () => {
     if (!user) {
       alert('Multiplayer oynamaq üçün hesabınıza daxil olmalısınız!');
       return;

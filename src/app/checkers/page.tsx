@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
+import {  Clock, ArrowLeft, Flag, Shield, Swords , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import GameChat from '@/components/GameChat';
 import { CheckersEngine, Move, BoardState } from './engine';
@@ -103,7 +103,31 @@ export default function CheckersArena() {
     }
   }, [engine.winner, mode, user, eloUpdated, myColor]);
 
-  const findMatch = async () => {
+  
+  const createPrivateRoom = async () => {
+    if (!user) { alert('Dostla oynamaq üçün hesabınıza daxil olun!'); return; }
+    const newRoomRef = push(ref(db, `games/checkers`));
+    
+    // Depending on game, initial state varies
+    let initialState = '';
+    
+    initialState = new CheckersEngine().serialize();
+    
+    
+    
+    await set(newRoomRef, { state: initialState, status: 'waiting_for_friend' });
+    setRoomId(newRoomRef.key);
+    setMyColor('w'); // Chess/Checkers white first, Go/Othello black first
+    setMode('multiplayer');
+    
+    const link = `${window.location.origin}/checkers?room=${newRoomRef.key}`;
+    navigator.clipboard.writeText(link).then(() => {
+       toast.success('Link kopyalandı! Dostunuza göndərin.', { icon: '🔗', duration: 6000 });
+       setStatus('Dostunuzun qoşulması gözlənilir...');
+    });
+  };
+
+  const findMatch =  async () => {
     if (!user) {
       alert('Multiplayer oynamaq üçün hesabınıza daxil olmalısınız!');
       return;

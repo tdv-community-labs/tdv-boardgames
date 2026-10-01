@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess, Move } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 } from 'lucide-react';
+import {  Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
@@ -139,7 +139,31 @@ export default function ChessArena() {
     }
   }, [game, mode, user, eloUpdated, myColor]);
 
-  const findMatch = async () => {
+  
+  const createPrivateRoom = async () => {
+    if (!user) { alert('Dostla oynamaq üçün hesabınıza daxil olun!'); return; }
+    const newRoomRef = push(ref(db, `games/chess`));
+    
+    // Depending on game, initial state varies
+    let initialState = '';
+    initialState = new Chess().fen();
+    
+    
+    
+    
+    await set(newRoomRef, { state: initialState, status: 'waiting_for_friend' });
+    setRoomId(newRoomRef.key);
+    setMyColor('w'); // Chess/Checkers white first, Go/Othello black first
+    setMode('multiplayer');
+    
+    const link = `${window.location.origin}/chess?room=${newRoomRef.key}`;
+    navigator.clipboard.writeText(link).then(() => {
+       toast.success('Link kopyalandı! Dostunuza göndərin.', { icon: '🔗', duration: 6000 });
+       setStatus('Dostunuzun qoşulması gözlənilir...');
+    });
+  };
+
+  const findMatch =  async () => {
     if (!user) {
       alert('Multiplayer oynamaq üçün hesabınıza daxil olmalısınız!');
       return;
@@ -286,8 +310,10 @@ return (
             onClick={() => { setMode('multiplayer'); resetGame(); }}
             className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition ${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
-            <Users className="w-4 h-4" /> Canlı (Multiplayer)
-          </button>
+            <Users className="w-4 h-4" /> Canlı (Multiplayer)</button>
+              <button onClick={createPrivateRoom} className="w-full py-3 mb-6 rounded-xl bg-purple-600 hover:bg-purple-500 text-sm font-bold text-white transition flex items-center justify-center gap-2">
+                <LinkIcon className="w-4 h-4" /> Dostla Oyna (Link)
+              </button>
         </div>
 
         {/* Opponent Info */}
@@ -411,6 +437,7 @@ return (
     </div>
   );
 }
+
 
 
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Users, Shield, Swords , Flag } from 'lucide-react';
+import {  ArrowLeft, Users, Shield, Swords , Flag , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import GameChat from '@/components/GameChat';
 import { OthelloEngine, Move } from './engine';
@@ -75,6 +75,22 @@ export default function OthelloArena() {
     return () => { if (timeoutId) clearTimeout(timeoutId); };
   }, [engine.turn, engine.winner, mode, board]); // Depend on board so it triggers after user sets board
 
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user) {
+      const params = new URLSearchParams(window.location.search);
+      const room = params.get('room');
+      if (room && !roomId) {
+        setMode('multiplayer');
+        setRoomId(room);
+        setMyColor('w'); // Joiner is opposite color
+        setStatus('Otağa qoşuldunuz! Oyun Başladı.');
+        toast.success('Dostunuzun otağına qoşuldunuz!', { icon: '🤝' });
+        window.history.replaceState({}, '', window.location.pathname); // Clear URL
+      }
+    }
+  }, [user, roomId]);
+
   // Handle Elo Updates
   useEffect(() => {
     if (mode === 'multiplayer' && engine.winner && user && !eloUpdated) {
@@ -121,7 +137,31 @@ export default function OthelloArena() {
     }
   };
 
-  const findMatch = async () => {
+  
+  const createPrivateRoom = async () => {
+    if (!user) { alert('Dostla oynamaq üçün hesabınıza daxil olun!'); return; }
+    const newRoomRef = push(ref(db, `games/othello`));
+    
+    // Depending on game, initial state varies
+    let initialState = '';
+    
+    
+    
+    initialState = new OthelloEngine().serialize();
+    
+    await set(newRoomRef, { state: initialState, status: 'waiting_for_friend' });
+    setRoomId(newRoomRef.key);
+    setMyColor('b'); // Chess/Checkers white first, Go/Othello black first
+    setMode('multiplayer');
+    
+    const link = `${window.location.origin}/othello?room=${newRoomRef.key}`;
+    navigator.clipboard.writeText(link).then(() => {
+       toast.success('Link kopyalandı! Dostunuza göndərin.', { icon: '🔗', duration: 6000 });
+       setStatus('Dostunuzun qoşulması gözlənilir...');
+    });
+  };
+
+  const findMatch =  async () => {
     if (!user) { alert('Multiplayer üçün hesabınıza daxil olun!'); return; }
     setIsSearching(true); setStatus('Rəqib axtarılır...');
     const wRef = ref(db, 'matchmaking/othello/waiting');
