@@ -9,6 +9,7 @@ import { onAuthStateChanged, updateProfile, signOut } from 'firebase/auth';
 import { ref, get } from 'firebase/database';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { getRank } from '@/utils/ranks';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -57,6 +58,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const totalMatches = (stats.wins || 0) + (stats.losses || 0);
+  const rank = getRank(stats.elo || 1200);
 
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8 pt-24 relative overflow-hidden">
@@ -106,6 +108,9 @@ export default function ProfilePage() {
                   </button>
                 </h1>
                 <p className="text-sm text-zinc-500 mt-1">{user.email}</p>
+                <div className={`mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-950 border border-zinc-800 font-black text-sm ${rank.color}`}>
+                  {rank.icon} {rank.name}
+                </div>
               </div>
             )}
 

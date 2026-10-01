@@ -6,6 +6,7 @@ import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
 import {  Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
+import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect } from 'firebase/database';
@@ -19,6 +20,7 @@ export default function ChessArena() {
   useEffect(() => { localStorage.setItem('tdv-chess', game.fen()); }, [game.fen()]);
   const [moves, setMoves] = useState<Move[]>([]);
   const [status, setStatus] = useState<string>('Oyun Başladı');
+  const [engineWinner, setEngineWinner] = useState<string | null>(null);
   const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
   const [difficulty, setDifficulty] = useState<number>(10); // 1-20
   
@@ -88,7 +90,11 @@ export default function ChessArena() {
       const gameRef = ref(db, "games/chess/");
       const unsubscribe = onValue(gameRef, (snap) => {
         const data = snap.val();
-        if (data && data.fen !== game.fen()) {
+        if (data && data.state && typeof data.state === 'string' && data.state.startsWith('resigned_')) {
+            setEngineWinner(data.state);
+            return;
+          }
+          if (data && data.fen !== game.fen()) {
           const newGame = new Chess(data.fen);
           setGame(newGame);
           setMoves(newGame.history({ verbose: true }) as Move[]);
@@ -275,8 +281,30 @@ export default function ChessArena() {
     setStatus('Oyun Başladı');
   };
 
-return (
+
+  let gameResult: 'win' | 'loss' | 'draw' | null = null;
+  if (game.isGameOver() || (typeof engineWinner === 'string' && engineWinner.startsWith('resigned_'))) {
+    if (game.isDraw() || game.isStalemate() || game.isThreefoldRepetition() || game.isInsufficientMaterial()) {
+      gameResult = 'draw';
+    } else {
+      let finalWinner = '';
+      if (typeof engineWinner === 'string' && engineWinner.startsWith('resigned_')) {
+        finalWinner = engineWinner === 'resigned_w' ? 'b' : 'w';
+      } else {
+        finalWinner = game.turn() === 'w' ? 'b' : 'w';
+      }
+      
+      if (mode === 'multiplayer') {
+        gameResult = finalWinner === myColor ? 'win' : 'loss';
+      } else {
+        gameResult = finalWinner === 'w' ? 'win' : 'loss';
+      }
+    }
+  }
+  
+  return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8 relative z-10 pt-24">
+      <EndGameModal isOpen={gameResult !== null} result={gameResult} onRematch={() => { setMode("bot"); resetGame(); }} />
       <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-white transition">
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm font-bold uppercase tracking-widest">Geri Qayıt</span>
