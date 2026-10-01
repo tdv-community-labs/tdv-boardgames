@@ -1,4 +1,21 @@
+export const isMuted = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('tdv-muted') === 'true';
+  }
+  return false;
+};
+
+export const toggleMute = () => {
+  if (typeof window !== 'undefined') {
+    const muted = localStorage.getItem('tdv-muted') === 'true';
+    localStorage.setItem('tdv-muted', (!muted).toString());
+    return !muted;
+  }
+  return false;
+};
+
 export const playMoveSound = () => {
+  if (isMuted()) return;
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
@@ -9,7 +26,6 @@ export const playMoveSound = () => {
 
     osc.type = 'sine';
     
-    // Quick pop sound
     osc.frequency.setValueAtTime(400, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
 
@@ -21,12 +37,11 @@ export const playMoveSound = () => {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.1);
-  } catch (e) {
-    console.error("Audio play failed", e);
-  }
+  } catch (e) {}
 };
 
 export const playCaptureSound = () => {
+  if (isMuted()) return;
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
@@ -37,7 +52,6 @@ export const playCaptureSound = () => {
 
     osc.type = 'square';
     
-    // Snappy capture sound
     osc.frequency.setValueAtTime(150, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
 
@@ -49,7 +63,5 @@ export const playCaptureSound = () => {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.15);
-  } catch (e) {
-    console.error("Audio play failed", e);
-  }
+  } catch (e) {}
 };

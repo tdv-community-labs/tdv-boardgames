@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize } from 'lucide-react';
+import {  Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
@@ -12,6 +12,8 @@ export function Navbar() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMutedState, setIsMutedState] = useState(false);
+  useEffect(() => { if (typeof window !== 'undefined') setIsMutedState(localStorage.getItem('tdv-muted') === 'true'); }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -29,6 +31,12 @@ export function Navbar() {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  const handleToggleMute = () => {
+    const muted = localStorage.getItem('tdv-muted') === 'true';
+    localStorage.setItem('tdv-muted', (!muted).toString());
+    setIsMutedState(!muted);
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
