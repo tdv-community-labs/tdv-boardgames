@@ -373,6 +373,27 @@ export default function ChessArena() {
     }
   };
   
+  
+  const writeActivityFeed = async (winnerUid: string, loserUid: string) => {
+    try {
+      const [wSnap, lSnap] = await Promise.all([
+        get(ref(db, `users/${winnerUid}`)),
+        get(ref(db, `users/${loserUid}`))
+      ]);
+      const winner = wSnap.val();
+      const loser = lSnap.val();
+      await push(ref(db, 'activity_feed'), {
+        winnerName: winner?.displayName || 'Oyunçu',
+        loserName: loser?.displayName || 'Oyunçu',
+        winnerAvatar: winner?.avatar || '😎',
+        loserAvatar: loser?.avatar || '😎',
+        game: 'chess',
+        eloChange: 25,
+        timestamp: Date.now()
+      });
+    } catch(e) {}
+  };
+  
   const resetGame = () => {
     const newGame = new Chess();
     setGame(newGame);
