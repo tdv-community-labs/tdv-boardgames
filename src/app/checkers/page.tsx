@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Shield, Flag, ArrowLeft, Users, Cpu } from 'lucide-react';
 import Link from 'next/link';
 import { CheckersEngine, Move, BoardState } from './engine';
+import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function CheckersArena() {
   const [engine, setEngine] = useState(new CheckersEngine());
@@ -29,6 +30,9 @@ export default function CheckersArena() {
           engine.move(randomMove);
           setBoard([...engine.board.map(r => [...r])]);
           updateStatus();
+          
+          if (randomMove.jumped) playCaptureSound();
+          else playMoveSound();
         }
       }, 600);
     }
@@ -63,6 +67,9 @@ export default function CheckersArena() {
         setSelectedCell(null);
         setValidMoves([]);
         updateStatus();
+        
+        if (move.jumped) playCaptureSound();
+        else playMoveSound();
       } else {
         setSelectedCell(null);
         setValidMoves([]);

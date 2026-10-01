@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { io, Socket } from 'socket.io-client';
+import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function ChessArena() {
   const [game, setGame] = useState(new Chess());
@@ -48,7 +49,13 @@ export default function ChessArena() {
             
             setGame((g) => {
               const newGame = new Chess(g.fen());
-              newGame.move({ from, to, promotion });
+              const moveResult = newGame.move({ from, to, promotion });
+              
+              if (moveResult) {
+                if (moveResult.captured) playCaptureSound();
+                else playMoveSound();
+              }
+
               setMoves(newGame.history({ verbose: true }) as Move[]);
               updateStatus(newGame);
               return newGame;
@@ -84,7 +91,13 @@ export default function ChessArena() {
       newSocket.on('opponent_moved', (move) => {
         setGame((g) => {
           const newGame = new Chess(g.fen());
-          newGame.move(move);
+          const moveResult = newGame.move(move);
+          
+          if (moveResult) {
+            if (moveResult.captured) playCaptureSound();
+            else playMoveSound();
+          }
+
           setMoves(newGame.history({ verbose: true }) as Move[]);
           updateStatus(newGame);
           return newGame;
@@ -109,6 +122,9 @@ export default function ChessArena() {
       const result = newGame.move(move);
       
       if (result) {
+        if (result.captured) playCaptureSound();
+        else playMoveSound();
+
         setGame(newGame);
         setMoves(newGame.history({ verbose: true }) as Move[]);
         updateStatus(newGame);

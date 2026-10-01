@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Clock, Shield, Flag, ArrowLeft, Users, Cpu } from 'lucide-react';
 import Link from 'next/link';
 import { GoEngine, BoardState } from './engine';
+import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function GoArena() {
   const [engine, setEngine] = useState(new GoEngine(19));
@@ -16,15 +17,23 @@ export default function GoArena() {
 
   const BOARD_SIZE = 19;
 
+  const getStoneCount = (b: BoardState) => b.flat().filter(x => x !== null).length;
+
   useEffect(() => {
     updateStatus();
     
     // Bot plays white
     if (engine.turn === 'w') {
       setTimeout(() => {
-        engine.playBotMove();
-        setBoard([...engine.board.map(r => [...r])]);
-        updateStatus();
+        const preCount = getStoneCount(engine.board);
+        if (engine.playBotMove()) {
+          setBoard([...engine.board.map(r => [...r])]);
+          updateStatus();
+          
+          const postCount = getStoneCount(engine.board);
+          if (postCount < preCount + 1) playCaptureSound();
+          else playMoveSound();
+        }
       }, 600);
     }
   }, [engine.turn]);
@@ -36,9 +45,14 @@ export default function GoArena() {
   const handleCellClick = (r: number, c: number) => {
     if (engine.turn === 'w') return; // Not our turn
     
+    const preCount = getStoneCount(engine.board);
     if (engine.placeStone(r, c)) {
       setBoard([...engine.board.map(row => [...row])]);
       updateStatus();
+      
+      const postCount = getStoneCount(engine.board);
+      if (postCount < preCount + 1) playCaptureSound();
+      else playMoveSound();
     }
   };
 
