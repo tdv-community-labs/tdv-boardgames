@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [avatar, setAvatar] = useState('😎');
+  const [banner, setBanner] = useState('default');
   const AVATARS = ['😎','🤖','👽','👻','🐱','🐉','🦄','💀','👑','👾','🤡','🦁'];
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -64,6 +65,31 @@ export default function ProfilePage() {
   const totalCoins = ((stats.wins || 0) * 15) + ((stats.losses || 0) * 2) + (stats.bonusCoins || 0);
   const currentCoins = totalCoins - (stats.spentCoins || 0);
   const unlockedAvatars = stats.unlockedAvatars || [];
+  
+  
+  const BANNERS = [
+    { id: 'default', name: 'Standart', style: 'bg-zinc-900 border-zinc-800', cost: 0 },
+    { id: 'matrix', name: 'Matrix', style: 'bg-gradient-to-br from-green-900/50 to-black border-green-500/50', cost: 500 },
+    { id: 'galaxy', name: 'Qalaktika', style: 'bg-gradient-to-br from-purple-900/50 via-blue-900/50 to-black border-purple-500/50', cost: 1000 },
+    { id: 'blood', name: 'Qan Seli', style: 'bg-gradient-to-br from-red-900/50 to-black border-red-500/50', cost: 1500 },
+    { id: 'gold', name: 'Kraliyet', style: 'bg-gradient-to-br from-yellow-900/50 via-amber-900/50 to-black border-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.2)]', cost: 3000 }
+  ];
+
+  const handleBuyBanner = async (bannerId: string, cost: number) => {
+    if (currentCoins >= cost) {
+      if (confirm(`Bu arxaplanı ${cost} 🪙 müqabilində almaq istədiyinizə əminsiniz?`)) {
+        await update(ref(db, `users/${user!.uid}`), {
+          spentCoins: (stats.spentCoins || 0) + cost,
+          unlockedBanners: [...(stats.unlockedBanners || []), bannerId],
+          banner: bannerId
+        });
+        setBanner(bannerId);
+        toast.success('Arxaplan uğurla alındı!');
+      }
+    } else {
+      toast.error('Kifayət qədər qəpiyiniz yoxdur!');
+    }
+  };
   
   const PREMIUM_AVATARS = [
     { icon: '💎', cost: 100 },
