@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess, Move } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import {  Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 , Link as LinkIcon } from 'lucide-react';
+import {   Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 , Link as LinkIcon , Eye } from 'lucide-react';
 import Link from 'next/link';
 import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
@@ -21,6 +21,7 @@ export default function ChessArena() {
   const [moves, setMoves] = useState<Move[]>([]);
   const [status, setStatus] = useState<string>('Oyun Başladı');
   const [engineWinner, setEngineWinner] = useState<string | null>(null);
+  const [isSpectator, setIsSpectator] = useState(false);
   const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
   const [difficulty, setDifficulty] = useState<number>(10);
   const [theme, setTheme] = useState<'classic' | 'wood' | 'ocean' | 'neon'>('classic');
@@ -303,7 +304,7 @@ export default function ChessArena() {
       }
       
       if (mode === 'multiplayer') {
-        gameResult = finalWinner === myColor ? 'win' : 'loss';
+        gameResult = isSpectator ? null : (finalWinner === myColor ? 'win' : 'loss');
       } else {
         gameResult = finalWinner === 'w' ? 'win' : 'loss';
       }
@@ -347,6 +348,14 @@ export default function ChessArena() {
             className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition ${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
             <Users className="w-4 h-4" /> Canlı (Multiplayer)</button>
+              
+              <button onClick={() => {
+                const link = `${window.location.origin}/chess?watch=${roomId}`;
+                navigator.clipboard.writeText(link).then(() => toast.success('İzləyici linki kopyalandı!'));
+              }} className="w-full py-2 mb-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-white transition flex items-center justify-center gap-2">
+                <Eye className="w-4 h-4" /> İzləyici Linki
+              </button>
+  
               <button onClick={createPrivateRoom} className="w-full py-3 mb-6 rounded-xl bg-purple-600 hover:bg-purple-500 text-sm font-bold text-white transition flex items-center justify-center gap-2">
                 <LinkIcon className="w-4 h-4" /> Dostla Oyna (Link)
               </button>
@@ -473,6 +482,7 @@ export default function ChessArena() {
     </div>
   );
 }
+
 
 
 
