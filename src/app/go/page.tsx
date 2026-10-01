@@ -90,46 +90,51 @@ export default function GoArena() {
           </div>
         </div>
 
-        {/* Custom Go Board */}
-        <div className="w-full max-w-[600px] aspect-square rounded-lg p-4 shadow-[0_0_50px_rgba(34,197,94,0.15)] ring-4 ring-zinc-800/50 bg-[#dcba82]">
-          <div className="grid w-full h-full border border-zinc-800 relative" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE - 1}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${BOARD_SIZE - 1}, minmax(0, 1fr))` }}>
-            
+                {/* Custom Go Board */}
+        <div className="w-full max-w-[600px] aspect-square rounded-lg p-2 md:p-6 shadow-[0_0_50px_rgba(34,197,94,0.15)] ring-4 ring-zinc-800/50 bg-[#dcba82] relative">
+          <div className="w-full h-full relative">
             {/* The Grid Lines */}
-            {Array((BOARD_SIZE - 1) * (BOARD_SIZE - 1)).fill(null).map((_, i) => (
-              <div key={i} className="border-b border-r border-zinc-800" />
+            {Array(19).fill(null).map((_, i) => (
+              <React.Fragment key={i}>
+                {/* Horizontal line */}
+                <div className="absolute bg-zinc-800" style={{ top: `%`, left: 0, right: 0, height: '1px', transform: 'translateY(-50%)' }} />
+                {/* Vertical line */}
+                <div className="absolute bg-zinc-800" style={{ left: `%`, top: 0, bottom: 0, width: '1px', transform: 'translateX(-50%)' }} />
+              </React.Fragment>
             ))}
 
-            {/* The Intersections Overlay */}
-            <div className="absolute top-0 left-0 w-[calc(100%+100%/(18))] h-[calc(100%+100%/(18))] grid -translate-x-[calc(50%/(18))] -translate-y-[calc(50%/(18))]" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${BOARD_SIZE}, minmax(0, 1fr))` }}>
-              {board.map((row, rIndex) => (
-                row.map((cell, cIndex) => {
-                  return (
-                    <div 
-                      key={`${rIndex}-${cIndex}`} 
-                      onClick={() => handleCellClick(rIndex, cIndex)}
-                      className="w-full h-full flex items-center justify-center cursor-pointer group"
-                    >
-                      {/* Hover Preview for empty cells */}
-                      {!cell && engine.turn === 'b' && (
-                        <div className="w-[85%] h-[85%] rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      )}
-                      
-                      {/* Placed Stone */}
-                      {cell && (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={`w-[90%] h-[90%] rounded-full shadow-md ${
-                            cell === 'w' ? 'bg-zinc-100' : 'bg-zinc-950 shadow-black/50 border border-white/10'
-                          }`} 
-                        />
-                      )}
-                    </div>
-                  );
-                })
-              ))}
-            </div>
+            {/* The Star Points (Hoshi) */}
+            {[ [3,3], [3,9], [3,15], [9,3], [9,9], [9,15], [15,3], [15,9], [15,15] ].map(([r, c], i) => (
+              <div key={"star-"} className="absolute w-2 h-2 bg-zinc-800 rounded-full -translate-x-1/2 -translate-y-1/2" style={{ top: `%`, left: `%` }} />
+            ))}
 
+            {/* The Intersections (Clickable Areas and Stones) */}
+            {board.map((row, rIndex) => (
+              row.map((cell, cIndex) => {
+                return (
+                  <div 
+                    key={`-`}
+                    onClick={() => handleCellClick(rIndex, cIndex)}
+                    className="absolute w-[5%] h-[5%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer group z-10"
+                    style={{ top: `%`, left: `%` }}
+                  >
+                    {/* Hover Preview for empty cells */}
+                    {!cell && engine.turn === 'b' && (
+                      <div className="w-full h-full rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
+                    
+                    {/* Placed Stone */}
+                    {cell && (
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className={"w-[110%] h-[110%] rounded-full shadow-md " + (cell === 'w' ? 'bg-zinc-100 shadow-white/20' : 'bg-zinc-950 shadow-black/50 border border-white/10')}
+                      />
+                    )}
+                  </div>
+                );
+              })
+            ))}
           </div>
         </div>
 
@@ -171,3 +176,4 @@ export default function GoArena() {
     </div>
   );
 }
+

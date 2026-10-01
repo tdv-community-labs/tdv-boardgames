@@ -47,7 +47,7 @@ const GAMES = [
     borderColor: 'border-fuchsia-500/30',
     textColor: 'text-fuchsia-400',
     players: '12',
-    badge: 'Tezlikl…ô'
+    badge: 'Yeniô'
   }
 ];
 
@@ -176,3 +176,4 @@ export default function Home() {
     </div>
   );
 }
+
