@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {  Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX } from 'lucide-react';
+import {   Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { getRank } from '@/utils/ranks';
@@ -16,6 +16,31 @@ export function Navbar() {
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMutedState, setIsMutedState] = useState(false);
+  
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }
+  }, []);
+  
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          setDeferredPrompt(null);
+        }
+      });
+    }
+  };
+  
   useEffect(() => { if (typeof window !== 'undefined') setIsMutedState(localStorage.getItem('tdv-muted') === 'true'); }, []);
 
   useEffect(() => {
