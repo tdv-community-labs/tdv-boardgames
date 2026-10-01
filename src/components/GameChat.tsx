@@ -62,6 +62,19 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
     setText('');
   };
 
+  
+  const sendEmoji = async (emoji: string) => {
+    if (!roomId) return;
+    const chatRef = ref(db, `games/${gameName}/${roomId}/chat`);
+    await push(chatRef, {
+      sender: userName,
+      text: emoji,
+      timestamp: serverTimestamp()
+    });
+  };
+  
+  const EMOJIS = ['👍', '😂', '😡', '😱', '👏', '🤝'];
+  
   if (!roomId) return null;
 
   return (
@@ -88,6 +101,20 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
         )}
       </div>
 
+      
+        <div className="bg-zinc-800/30 px-3 py-2 border-t border-zinc-800 flex items-center justify-between gap-1 overflow-x-auto custom-scrollbar">
+          {EMOJIS.map(em => (
+            <button 
+              key={em} 
+              onClick={() => sendEmoji(em)} 
+              className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-zinc-700/50 transition-colors text-lg active:scale-95"
+              type="button"
+            >
+              {em}
+            </button>
+          ))}
+        </div>
+  
       <form onSubmit={sendMessage} className="p-3 border-t border-zinc-800 flex gap-2">
         <input 
           type="text" 
