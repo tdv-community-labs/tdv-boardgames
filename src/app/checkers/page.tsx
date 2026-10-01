@@ -8,6 +8,8 @@ import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import confetti from 'canvas-confetti';
+import { toast } from 'react-hot-toast';
 import { ref, get, set, update, remove, onValue, push, onDisconnect, serverTimestamp } from 'firebase/database';
 
 export default function CheckersArena() {
@@ -82,8 +84,8 @@ export default function CheckersArena() {
           // In Chess, winner is usually myColor (w or b) or draw
           if (engine.winner === myColor) isWin = true;
           
-          if (isWin) { newWins++; newElo += 25; }
-          else if (!isDraw) { newLosses++; newElo = Math.max(0, newElo - 25); }
+          if (isWin) { newWins++; newElo += 25; confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); toast.success('+25 Elo Qazandınız!', { icon: '🏆', duration: 5000 }); }
+          else if (!isDraw) { newLosses++; newElo = Math.max(0, newElo - 25); toast.error('-25 Elo İtirdiniz.', { icon: '💀', duration: 5000 }); }
 
           const total = newWins + newLosses;
           const winRate = total > 0 ? Math.round((newWins / total) * 100) + "%" : "0%";
@@ -132,7 +134,7 @@ export default function CheckersArena() {
       setRoomId(newRoomId);
       setMyColor('b');
       resetGame();
-      setStatus('Oyun Başladı! Uğurlar.');
+      setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '🔥' }); toast.success('Rəqib qoşuldu! Oyun Başladı.', { icon: '🔥' });
       setIsSearching(false);
     } else {
       await set(waitingRef, user.uid);
@@ -145,7 +147,7 @@ export default function CheckersArena() {
           setRoomId(foundRoomId);
           setMyColor('w');
           resetGame();
-          setStatus('Oyun Başladı! Uğurlar.');
+          setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '🔥' });
           setIsSearching(false);
           remove(matchRef);
         }

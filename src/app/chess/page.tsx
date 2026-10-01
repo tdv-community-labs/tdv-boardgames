@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect } from 'firebase/database';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import confetti from 'canvas-confetti';
+import { toast } from 'react-hot-toast';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function ChessArena() {
@@ -118,8 +120,8 @@ export default function ChessArena() {
              if (winnerColor === myColor) isWin = true;
           }
           
-          if (isWin) { newWins++; newElo += 25; }
-          else if (!isDraw) { newLosses++; newElo = Math.max(0, newElo - 25); }
+          if (isWin) { newWins++; newElo += 25; confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); toast.success('+25 Elo QazandÄ±nÄ±z!', { icon: 'ðŸ†', duration: 5000 }); }
+          else if (!isDraw) { newLosses++; newElo = Math.max(0, newElo - 25); toast.error('-25 Elo Ä°tirdiniz.', { icon: 'ðŸ’€', duration: 5000 }); }
 
           const total = newWins + newLosses;
           const winRate = total > 0 ? Math.round((newWins / total) * 100) + "%" : "0%";
@@ -168,7 +170,7 @@ export default function ChessArena() {
       setRoomId(newRoomId);
       setMyColor('b');
       resetGame();
-      setStatus('Oyun Baï¿½ladï¿½! Uï¿½urlar.');
+      setStatus('Oyun Baþladý! Uðurlar.'); toast.success('Oyun Baþladý! Uðurlar.', { icon: '??' }); playMoveSound();
       setIsSearching(false);
     } else {
       await set(waitingRef, user.uid);
@@ -181,7 +183,7 @@ export default function ChessArena() {
           setRoomId(foundRoomId);
           setMyColor('w');
           resetGame();
-          setStatus('Oyun Baï¿½ladï¿½! Uï¿½urlar.');
+          setStatus('Oyun Baþladý! Uðurlar.'); toast.success('Oyun Baþladý! Uðurlar.', { icon: '??' }); playMoveSound();
           setIsSearching(false);
           remove(matchRef);
         }
@@ -408,6 +410,7 @@ return (
     </div>
   );
 }
+
 
 
 

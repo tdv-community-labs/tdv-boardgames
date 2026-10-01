@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: "TDV Community Labs tərəfindən yaradılmış onlayn stolüstü oyunlar arenası.",
 };
 
+import { Toaster } from 'react-hot-toast';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,6 +31,7 @@ export default function RootLayout({
 
         <main className="pt-24 min-h-screen">
           {children}
+        <Toaster position="top-center" toastOptions={{ style: { background: '#18181b', color: '#fff', border: '1px solid #27272a' } }} />
         </main>
       </body>
     </html>
