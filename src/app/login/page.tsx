@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { KeyRound, Mail, ArrowRight, UserPlus, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { ref, set } from 'firebase/database';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 export default function LoginPage() {
@@ -32,8 +33,17 @@ export default function LoginPage() {
           setLoading(false);
           return;
         }
+        
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName });
+        await set(ref(db, `users/${userCredential.user.uid}`), {
+          uid: userCredential.user.uid,
+          displayName: displayName,
+          elo: 1200,
+          winRate: "0%",
+          wins: 0,
+          losses: 0
+        });
         router.push('/');
       }
     } catch (err: any) {
@@ -129,7 +139,7 @@ export default function LoginPage() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {isLogin ? 'Daxil Ol' : 'Qeydiyyatdan Keç'}
+                  {isLogin ? 'Daxil Ol' : 'Qeydiyyatdan Keçç'}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
