@@ -141,11 +141,11 @@ export default function ChessArena() {
 
   const findMatch = async () => {
     if (!user) {
-      alert('Multiplayer oynamaq ���n hesab�n�za daxil olmal�s�n�z!');
+      alert('Multiplayer oynamaq üçün hesabınıza daxil olmalısınız!');
       return;
     }
     setIsSearching(true);
-    setStatus('R?qib axtar�l�r...');
+    setStatus('R?qib axtarılır...');
 
     const waitingRef = ref(db, 'matchmaking/chess/waiting');
     const snap = await get(waitingRef);
@@ -171,7 +171,7 @@ export default function ChessArena() {
       setRoomId(newRoomId);
       setMyColor('b');
       resetGame();
-      setStatus('Oyun Ba�lad�! U�urlar.'); toast.success('Oyun Ba�lad�! U�urlar.', { icon: '??' }); playMoveSound();
+      setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '??' }); playMoveSound();
       setIsSearching(false);
     } else {
       await set(waitingRef, user.uid);
@@ -184,7 +184,7 @@ export default function ChessArena() {
           setRoomId(foundRoomId);
           setMyColor('w');
           resetGame();
-          setStatus('Oyun Ba�lad�! U�urlar.'); toast.success('Oyun Ba�lad�! U�urlar.', { icon: '??' }); playMoveSound();
+          setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '??' }); playMoveSound();
           setIsSearching(false);
           remove(matchRef);
         }

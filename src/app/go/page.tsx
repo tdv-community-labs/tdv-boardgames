@@ -43,7 +43,7 @@ export default function GoArena() {
         const data = snap.val();
         if (data && data.state && data.state !== engine.serialize()) {
           const newEngine = new GoEngine(BOARD_SIZE);
-          newEngine.load(data.state);
+          if (typeof data.state === 'string' && data.state.startsWith('resigned_')) { newEngine.load(engine.serialize()); newEngine.winner = data.state === 'resigned_w' ? 'b' : 'w'; } else { newEngine.load(data.state); }
           setEngine(newEngine);
           setBoard(newEngine.board);
           

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Users, Shield, Swords } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Swords , Flag } from 'lucide-react';
 import Link from 'next/link';
 import GameChat from '@/components/GameChat';
 import { OthelloEngine, Move } from './engine';
@@ -212,13 +212,15 @@ export default function OthelloArena() {
               {isSearching ? 'Rəqib axtarılır...' : 'Rəqib Axtar'}
             </button>
           )}
-          <button onClick={resetGame} className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-white transition">Yenidən Başla</button>
+          <div className="flex gap-2 mb-2"><button onClick={resetGame} className="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-white transition">Yenidən Başla</button> {mode === 'multiplayer' && roomId && !engine.winner && <button onClick={() => { if (confirm('Təslim olmaq istədiyinizə əminsiniz?')) { set(ref(db, `games/othello/${roomId}/state`), 'resigned_' + myColor); } }} className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-sm font-bold text-red-400 transition flex items-center justify-center gap-1"><Flag className="w-4 h-4" /> Təslim ol</button>}</div>
         </div>
         <GameChat roomId={roomId} gameName="othello" userName={user?.displayName || 'Oyunçu'} />
       </div>
     </div>
   );
 }
+
+
 
 
 

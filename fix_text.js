@@ -1,58 +1,77 @@
 const fs = require('fs');
+const path = require('path');
 
-const GAMES_CLEAN = [
-  { id: 'chess', name: 'Şahmat', icon: '♟', description: 'Qədim strategiya oyunu. Kralı qoruyun, rəqibi mat edin.', color: 'from-emerald-500/20 to-emerald-900/40', borderColor: 'border-emerald-500/30', textColor: 'text-emerald-400', players: '124', badge: 'Populyar' },
-  { id: 'checkers', name: 'Dama', icon: '⛀', description: 'Sürətli və taktiki. Rəqibin bütün daşlarını vurun.', color: 'from-blue-500/20 to-blue-900/40', borderColor: 'border-blue-500/30', textColor: 'text-blue-400', players: '89' },
-  { id: 'go', name: 'Qo (Go)', icon: '⚪', description: 'Ərazi nəzarəti sənəti. Sonsuz ehtimallar, dərin fəlsəfə.', color: 'from-amber-500/20 to-amber-900/40', borderColor: 'border-amber-500/30', textColor: 'text-amber-400', players: '45', badge: 'Yeni' },
-  { id: 'othello', name: 'Othello', icon: '⚫', description: 'Bir dəqiqədə öyrənin, bir ömür boyu ustalaşın.', color: 'from-fuchsia-500/20 to-fuchsia-900/40', borderColor: 'border-fuchsia-500/30', textColor: 'text-fuchsia-400', players: '12', badge: 'Yeni' }
-];
+const replacements = {
+  '\uFFFD\uFFFD\uFFFDn': 'üçün',
+  'hesab\uFFFDn\uFFFDza': 'hesabınıza',
+  'olmal\uFFFDs\uFFFDn\uFFFDz': 'olmalısınız',
+  'R\uFFFDtqib': 'Rəqib',
+  'axtar\uFFFDl\uFFFDr': 'axtarılır',
+  'Ba\uFFFDlad\uFFFD': 'Başladı',
+  'U\uFFFDurlar': 'Uğurlar',
+  'Gedi\uFFFDY': 'Gediş',
+  's\uFFFDras\uFFFD': 'sırası',
+  'A\uFFFDYlar': 'Ağlar',
+  'Qazand\uFFFDn\uFFFDz': 'Qazandınız',
+  '\uFFFDtirdiniz': 'İtirdiniz',
+  'Ba\uFFFDYla': 'Başla',
+  'Yenid\uFFFDtn': 'Yenidən',
+  'Q\uFFFDtdim': 'Qədim',
+  'S\u01ECLr\uFFFDttli': 'Sürətli',
+  'b\u01ECLt\u01ECLn': 'bütün',
+  '\uFFFDyr\uFFFDtnin': 'öyrənin',
+  '\uFFFDm\u01ECLr': 'ömür',
+  'ustala\uFFFDY\uFFFDn': 'ustalaşın',
+  'G\uFFFDtldiniz': 'Gəldiniz',
+  'G\uFFFDtldi': 'Gəldi',
+  '\uFFFD?ah v\uFFFDt Mat': 'Şah və Mat',
+  'He\uFFFD-he\uFFFDt': 'Heç-heçə',
+  '\uFFFD?AH': 'ŞAH',
+  't\uFFFDtslim': 'təslim',
+  'T\uFFFDtslim': 'Təslim',
+  'Qaralar': 'Qaralar', // just mapping to check
+  'S\uFFFDtn': 'Sən',
+  '\uFFFDYar\uFFFDtni': 'işarəni',
+  'd\u01ECLz\u01ECLn': 'düzün',
+  '\uFFFDs\uFFFD': '⚫', // Othello icon
+  '\uFFFDy\?': '⚪', // Go icon
+  '\uFFFD>?': '⭕', // Checkers icon
+  '\uFFFDtY': '♟', // Chess icon
+  '\uFFFDY?': '🏆', // Trophy icon
+  '\uFFFDY\'?': '💀' // Skull icon
+};
 
-function fixFile(file) {
-  let c = fs.readFileSync(file, 'utf8');
-  
-  if (file.includes('page.tsx') && !file.includes('app/')) {
-     // this is root page.tsx
-     const oldStr = c.substring(c.indexOf('const GAMES ='), c.indexOf('];', c.indexOf('const GAMES =')) + 2);
-     const newStr = 'const GAMES = ' + JSON.stringify(GAMES_CLEAN, null, 2).replace(/"([^"]+)":/g, '$1:') + ';';
-     c = c.replace(oldStr, newStr);
-  } else {
-     // Fix common texts for game pages
-     c = c.replace(/Oyun Ba.*?lad.*? Gedi.*?: (A.*?lar|Qaralar)/g, 'Oyun Başladı. Gediş: $1')
-          .replace(/A.*?lar/g, 'Ağlar')
-          .replace(/Qaralar/g, 'Qaralar')
-          .replace(/Gedi.*? s.*?ras.*?:/g, 'Gediş sırası:')
-          .replace(/Gedi.*?l.*?r Tarix.*?si/g, 'Gedişlər Tarixçəsi')
-          .replace(/T.*?slim ol/g, 'Təslim ol')
-          .replace(/He.*?he.*?/g, 'Heç-heçə')
-          .replace(/Yenid.*?n Ba.*?la/g, 'Yenidən Başla')
-          .replace(/Bot Qalib G.*?ldi!/g, 'Bot Qalib Gəldi!')
-          .replace(/Siz Qalib G.*?ldiniz!/g, 'Siz Qalib Gəldiniz!')
-          .replace(/S.*?n \(Qara\)/g, 'Sən (Qara)')
-          .replace(/S.*?n \(A.*?lar\)/g, 'Sən (Ağlar)')
-          .replace(/Bot \(A.*?\)/g, 'Bot (Ağ)')
-          .replace(/S.*?n/g, 'Sən')
-          .replace(/R.*?qib/g, 'Rəqib')
-          .replace(/R.*?qib axtar.*?l.*?r\.\.\./g, 'Rəqib axtarılır...')
-          .replace(/Oyun Ba.*?lad.*? U.*?urlar\./g, 'Oyun Başladı! Uğurlar.')
-          .replace(/\?ahmat/g, 'Şahmat')
-          .replace(/Geri Qay.*?t/g, 'Geri Qayıt')
-          .replace(/Pas \(Ke.*?\)/g, 'Pas (Keç)')
-          .replace(/Oyun Statusu/g, 'Oyun Statusu')
-          .replace(/Canl.*? \(Multiplayer\)/g, 'Canlı (Multiplayer)')
-          .replace(/R.*?qib_Usta/g, 'Rəqib_Usta')
-          .replace(/\?ah v.*?t Mat! Oyun Bitdi\./g, 'Şah və Mat! Oyun Bitdi.')
-          .replace(/Pat! He.*?he.*?\./g, 'Pat! Heç-heçə.');
+function fixCorrupted(dir) {
+  const files = fs.readdirSync(dir);
+  for (let file of files) {
+    const fullPath = path.join(dir, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      fixCorrupted(fullPath);
+    } else if (fullPath.endsWith('.tsx') || fullPath.endsWith('.ts')) {
+      let content = fs.readFileSync(fullPath, 'utf8');
+      let changed = false;
+      for (const [bad, good] of Object.entries(replacements)) {
+        if (content.includes(bad)) {
+          content = content.split(bad).join(good);
+          changed = true;
+        }
+      }
+      
+      // Some special cases for single U+FFFD characters not covered above
+      // Checkers Icon
+      content = content.replace(/icon: "\uFFFD>\?"/g, 'icon: "⭕"');
+      content = content.replace(/icon: "\uFFFDtY"/g, 'icon: "♟"');
+      content = content.replace(/icon: "\uFFFDs\uFFFD"/g, 'icon: "⚫"');
+      content = content.replace(/icon: "\uFFFDy\?"/g, 'icon: "⚪"');
+      content = content.replace(/'\uFFFDY\?'/g, "'🏆'");
+      content = content.replace(/'\uFFFDY'\?'/g, "'💀'");
+      content = content.replace(/\uFFFD\?ah v\uFFFDt Mat/g, 'Şah və Mat');
+
+      if (changed) {
+        fs.writeFileSync(fullPath, content, 'utf8');
+      }
+    }
   }
-  
-  fs.writeFileSync(file, c, 'utf8');
 }
 
-['src/app/page.tsx', 'src/app/chess/page.tsx', 'src/app/checkers/page.tsx', 'src/app/go/page.tsx', 'src/app/othello/page.tsx'].forEach(f => {
-  if (f === 'src/app/page.tsx') {
-    fixFile(f);
-  } else {
-    // for game pages, we already messed up 'setStn' in previous attempt, but I ran git restore. So now they have ? and other chars.
-    // wait, we ran git restore, so they are corrupted with ? from before.
-    fixFile(f);
-  }
-});
+fixCorrupted('src');
