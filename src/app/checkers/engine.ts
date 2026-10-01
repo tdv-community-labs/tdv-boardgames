@@ -12,7 +12,7 @@ export interface Move {
 export class CheckersEngine {
   board: BoardState;
   turn: 'w' | 'b';
-  winner: 'w' | 'b' | null;
+  winner: 'w' | 'b' | 'draw' | null;
 
   multiJumpPiece: {r: number, c: number} | null = null;
   private nextId = 1;
@@ -285,5 +285,7 @@ export class CheckersEngine {
     }
   }
 }
+
+
 
 
