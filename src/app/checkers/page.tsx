@@ -21,17 +21,16 @@ export default function CheckersArena() {
   useEffect(() => {
     updateStatus();
     
-    // Simple Bot Logic
+    // AI Bot Logic
     if (engine.turn === 'b' && !engine.winner) {
       setTimeout(() => {
-        const moves = engine.getValidMoves('b');
-        if (moves.length > 0) {
-          const randomMove = moves[Math.floor(Math.random() * moves.length)];
-          engine.move(randomMove);
+        const bestMove = engine.getBestMove(5); // Depth 5 Minimax
+        if (bestMove) {
+          engine.move(bestMove);
           setBoard([...engine.board.map(r => [...r])]);
           updateStatus();
           
-          if (randomMove.jumped) playCaptureSound();
+          if (bestMove.jumped) playCaptureSound();
           else playMoveSound();
         }
       }, 600);

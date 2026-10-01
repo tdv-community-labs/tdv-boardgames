@@ -95,24 +95,57 @@ export class GoEngine {
     }
   }
 
-  // Simple random bot
+  // Simple greedy bot
   playBotMove() {
-    let emptyCells: {r: number, c: number}[] = [];
+    let emptyCells: {r: number, c: number, score: number}[] = [];
+    
     for(let r=0; r<this.size; r++) {
       for(let c=0; c<this.size; c++) {
         if(this.board[r][c] === null) {
-          emptyCells.push({r, c});
+          // Temporarily place to evaluate
+          this.board[r][c] = 'w';
+          const valid = this.hasLiberties(r, c, 'w');
+          this.board[r][c] = null;
+          
+          if (valid) {
+            let score = this.evaluateMove(r, c, 'w');
+            // Add a little randomness
+            score += Math.random();
+            emptyCells.push({r, c, score});
+          }
         }
       }
     }
     
-    // Shuffle and try places
-    emptyCells.sort(() => Math.random() - 0.5);
-    for (let cell of emptyCells) {
-      if (this.placeStone(cell.r, cell.c)) {
-        return true;
+    if (emptyCells.length === 0) return false;
+
+    emptyCells.sort((a, b) => b.score - a.score);
+    
+    // Play the best move
+    return this.placeStone(emptyCells[0].r, emptyCells[0].c);
+  }
+
+  evaluateMove(r: number, c: number, color: Piece): number {
+    let score = 0;
+    const opponent = color === 'w' ? 'b' : 'w';
+    
+    // Check neighbors
+    const dirs = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]];
+    for (let [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (this.isValidPos(nr, nc)) {
+        if (this.board[nr][nc] === opponent) {
+          score += 2; // Attack/Attach
+        } else if (this.board[nr][nc] === color) {
+          score += 1; // Defend/Connect
+        }
       }
     }
-    return false; // pass
+
+    // Prefer 3rd/4th line in early game
+    const distEdge = Math.min(r, this.size - 1 - r, c, this.size - 1 - c);
+    if (distEdge === 2 || distEdge === 3) score += 1.5;
+
+    return score;
   }
 }

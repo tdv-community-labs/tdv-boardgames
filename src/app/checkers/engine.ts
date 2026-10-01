@@ -110,4 +110,110 @@ export class CheckersEngine {
     if (wCount === 0 || wMoves.length === 0) this.winner = 'b';
     else if (bCount === 0 || bMoves.length === 0) this.winner = 'w';
   }
+
+  // --- AI LOGIC (Minimax with Alpha-Beta Pruning) ---
+
+  evaluateBoard(): number {
+    let score = 0;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = this.board[r][c];
+        if (piece === 'b') score += 10;
+        else if (piece === 'B') score += 30; // King value
+        else if (piece === 'w') score -= 10;
+        else if (piece === 'W') score -= 30;
+
+        // Positional bonus (center is good, back row is good)
+        if (piece && piece.toLowerCase() === 'b') {
+          if (r === 0) score += 5; // keep back row
+          if (c > 1 && c < 6) score += 2;
+        }
+      }
+    }
+    return score; // Positive means Black (Bot) is winning
+  }
+
+  getBestMove(depth: number = 4): Move | null {
+    let bestScore = -Infinity;
+    let bestMove: Move | null = null;
+    
+    const validMoves = this.getValidMoves('b');
+    if (validMoves.length === 0) return null;
+    if (validMoves.length === 1) return validMoves[0]; // Forced move
+
+    for (let move of validMoves) {
+      // Clone board
+      const backupBoard = this.board.map(r => [...r]);
+      const backupTurn = this.turn;
+      
+      // Make move manually without checkWin overhead
+      this.board[move.toRow][move.toCol] = this.board[move.fromRow][move.fromCol];
+      this.board[move.fromRow][move.fromCol] = null;
+      if (move.jumped) this.board[move.jumped.row][move.jumped.col] = null;
+      if (move.toRow === 7) this.board[move.toRow][move.toCol] = 'B';
+      this.turn = 'w';
+
+      let score = this.minimax(depth - 1, -Infinity, Infinity, false);
+      
+      // Undo
+      this.board = backupBoard;
+      this.turn = backupTurn;
+
+      // Add a tiny random variance so the bot doesn't play identically every game
+      score += (Math.random() * 2 - 1); 
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+    }
+    return bestMove || validMoves[Math.floor(Math.random() * validMoves.length)];
+  }
+
+  minimax(depth: number, alpha: number, beta: number, isMaximizing: boolean): number {
+    if (depth === 0) return this.evaluateBoard();
+
+    const moves = this.getValidMoves(isMaximizing ? 'b' : 'w');
+    if (moves.length === 0) {
+      return isMaximizing ? -1000 : 1000; // Loss
+    }
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (let move of moves) {
+        const backupBoard = this.board.map(r => [...r]);
+        
+        this.board[move.toRow][move.toCol] = this.board[move.fromRow][move.fromCol];
+        this.board[move.fromRow][move.fromCol] = null;
+        if (move.jumped) this.board[move.jumped.row][move.jumped.col] = null;
+        if (move.toRow === 7) this.board[move.toRow][move.toCol] = 'B';
+
+        let evalScore = this.minimax(depth - 1, alpha, beta, false);
+        this.board = backupBoard;
+
+        maxEval = Math.max(maxEval, evalScore);
+        alpha = Math.max(alpha, evalScore);
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (let move of moves) {
+        const backupBoard = this.board.map(r => [...r]);
+        
+        this.board[move.toRow][move.toCol] = this.board[move.fromRow][move.fromCol];
+        this.board[move.fromRow][move.fromCol] = null;
+        if (move.jumped) this.board[move.jumped.row][move.jumped.col] = null;
+        if (move.toRow === 0) this.board[move.toRow][move.toCol] = 'W';
+
+        let evalScore = this.minimax(depth - 1, alpha, beta, true);
+        this.board = backupBoard;
+
+        minEval = Math.min(minEval, evalScore);
+        beta = Math.min(beta, evalScore);
+        if (beta <= alpha) break;
+      }
+      return minEval;
+    }
+  }
 }
