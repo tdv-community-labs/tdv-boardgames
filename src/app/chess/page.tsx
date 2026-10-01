@@ -168,8 +168,8 @@ export default function ChessArena() {
             engine.current.postMessage(`setoption name Skill Level value ${difficulty}`);
             engine.current.postMessage(`go depth 15`);
           }
-        } else if (mode === 'multiplayer' && roomId && socket) {
-          socket.emit('make_move', { roomId, move });
+        } else if (mode === 'multiplayer' && roomId && user) {
+          set(ref(db, "games/chess//fen"), newGame.fen());
         }
         return true;
       }
@@ -248,7 +248,7 @@ return (
         </div>
 
         {/* Opponent Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
               {mode === 'bot' ? '🤖' : '🔥'}
@@ -280,7 +280,7 @@ return (
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-[600px] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-4 ring-zinc-800/50"
+          className="w-full max-w-[100%] sm:max-w-[65vh] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-4 ring-zinc-800/50"
         >
           {/* @ts-ignore */}
           <Chessboard 
@@ -294,7 +294,7 @@ return (
         </motion.div>
 
         {/* My Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center border border-purple-500/50 text-purple-400">
               😎
@@ -368,6 +368,8 @@ return (
     </div>
   );
 }
+
+
 
 
 

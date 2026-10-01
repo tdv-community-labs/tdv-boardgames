@@ -124,7 +124,7 @@ export default function CheckersArena() {
       <div className="flex-1 flex flex-col items-center justify-center relative">
         
         {/* Opponent Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
               🤖
@@ -141,7 +141,7 @@ export default function CheckersArena() {
         </div>
 
         {/* Custom Checkerboard */}
-        <div className="w-full max-w-[600px] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)] ring-4 ring-zinc-800/50">
+        <div className="w-full max-w-full sm:max-w-[65vh] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)] ring-4 ring-zinc-800/50">
           <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
             {board.map((row, rIndex) => (
               row.map((cell, cIndex) => {
@@ -183,7 +183,7 @@ export default function CheckersArena() {
         </div>
 
         {/* My Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/50 text-red-400">
               😎

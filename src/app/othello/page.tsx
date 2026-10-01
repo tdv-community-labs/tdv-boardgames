@@ -56,7 +56,7 @@ export default function OthelloArena() {
         }
       }, 800);
     }
-  }, [engine.turn]);
+  }, [board, engine.turn]);
 
   const updateStatus = () => {
     if (engine.winner) {
@@ -100,7 +100,7 @@ export default function OthelloArena() {
       <div className="flex-1 flex flex-col items-center justify-center relative">
         
         {/* Opponent Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center border border-zinc-700 text-black">
               W
@@ -117,7 +117,7 @@ export default function OthelloArena() {
         </div>
 
         {/* Custom Othello Board */}
-        <div className="w-full max-w-[600px] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(22,163,74,0.15)] ring-4 ring-zinc-800/50">
+        <div className="w-full max-w-full sm:max-w-[65vh] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(22,163,74,0.15)] ring-4 ring-zinc-800/50">
           <div className="grid grid-cols-8 grid-rows-8 w-full h-full bg-[#15803d] border-4 border-[#14532d]">
             {board.map((row, rIndex) => (
               row.map((cell, cIndex) => {
@@ -153,7 +153,7 @@ export default function OthelloArena() {
         </div>
 
         {/* My Info */}
-        <div className="w-full max-w-[600px] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-950 flex items-center justify-center border border-zinc-700 text-white">
               B
@@ -228,5 +228,6 @@ export default function OthelloArena() {
     </div>
   );
 }
+
 
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Trophy, User, LogIn, LogOut } from 'lucide-react';
+import { Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
@@ -11,14 +11,32 @@ export function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      unsubscribe();
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
   }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(e => console.error(e));
+    } else {
+      document.exitFullscreen().catch(e => console.error(e));
+    }
+  };
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -50,9 +68,17 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Auth */}
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-semibold text-zinc-400">
+        {/* Auth & Tools */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button 
+            onClick={toggleFullscreen} 
+            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors hidden sm:block" 
+            title="Tam Ekran"
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </button>
+
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-semibold text-zinc-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Canlı (Firebase)
           </div>
