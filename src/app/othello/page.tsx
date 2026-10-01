@@ -36,7 +36,7 @@ export default function OthelloArena() {
   // Sync state for multiplayer
   useEffect(() => {
     if (mode === 'multiplayer' && user && roomId) {
-      const gameRef = ref(db, `games/othello/\${roomId}`);
+      const gameRef = ref(db, `games/othello/${roomId}`);
       const unsub = onValue(gameRef, (snap) => {
         const data = snap.val();
         if (data && data.state && data.state !== engine.serialize()) {
@@ -79,7 +79,7 @@ export default function OthelloArena() {
   useEffect(() => {
     if (mode === 'multiplayer' && engine.winner && user && !eloUpdated) {
       setEloUpdated(true);
-      const userRef = ref(db, `users/\${user.uid}`);
+      const userRef = ref(db, `users/${user.uid}`);
       get(userRef).then(snap => {
         const u = snap.val();
         if (u) {
@@ -103,7 +103,7 @@ export default function OthelloArena() {
       if (e.winner === 'draw') setStatus('Heç-heçə!');
       else setStatus(e.winner === myColor && mode === 'multiplayer' || e.winner === 'b' && mode === 'bot' ? 'Siz Qalib Gəldiniz!' : 'Rəqib Qalib Gəldi!');
     } else {
-      setStatus(`Gediş sırası: \${e.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
+      setStatus(`Gediş sırası: ${e.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
     }
   };
 
@@ -113,7 +113,7 @@ export default function OthelloArena() {
     if (mode === 'multiplayer' && engine.turn !== myColor) return;
 
     if (engine.move(r, c)) {
-      if (mode === 'multiplayer' && roomId) set(ref(db, `games/othello/\${roomId}/state`), engine.serialize());
+      if (mode === 'multiplayer' && roomId) set(ref(db, `games/othello/${roomId}/state`), engine.serialize());
       setBoard([...engine.board.map(row => [...row])]);
       setValidMoves(engine.getValidMoves(engine.turn));
       updateStatus(engine);
@@ -132,12 +132,12 @@ export default function OthelloArena() {
       await remove(wRef);
       const newRoomRef = push(ref(db, 'games/othello'));
       await set(newRoomRef, { state: new OthelloEngine().serialize(), status: 'playing' });
-      await set(ref(db, `users/\${oppId}/currentMatch`), newRoomRef.key);
+      await set(ref(db, `users/${oppId}/currentMatch`), newRoomRef.key);
       setRoomId(newRoomRef.key); setMyColor('w'); resetGame();
       setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı!', {icon:'🔥'}); playMoveSound(); setIsSearching(false);
     } else {
       await set(wRef, user.uid); onDisconnect(wRef).remove();
-      const matchRef = ref(db, `users/\${user.uid}/currentMatch`);
+      const matchRef = ref(db, `users/${user.uid}/currentMatch`);
       onValue(matchRef, (s) => {
         if (s.val()) {
           setRoomId(s.val()); setMyColor('b'); resetGame();
@@ -177,11 +177,11 @@ export default function OthelloArena() {
               const isMove = validMoves.some(m => m.r === r && m.c === c);
               const highlightTurn = mode === 'bot' && engine.turn === 'w' ? false : (mode === 'multiplayer' && engine.turn !== myColor ? false : true);
               return (
-                <div key={`\${r}-\${c}`} onClick={() => handleCellClick(r, c)} className="w-full h-full border border-[#15803d] flex items-center justify-center relative cursor-pointer">
+                <div key={`${r}-${c}`} onClick={() => handleCellClick(r, c)} className="w-full h-full border border-[#15803d] flex items-center justify-center relative cursor-pointer">
                   {isMove && highlightTurn && <div className="absolute w-4 h-4 rounded-full bg-black/40 border border-black/50 animate-pulse z-0" />}
                   <AnimatePresence>
                     {cell && (
-                      <motion.div initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ duration: 0.3 }} className={`z-10 w-[85%] h-[85%] rounded-full shadow-lg border \${cell==='w'?'bg-zinc-100 border-white':'bg-zinc-950 border-black'}`} />
+                      <motion.div initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ duration: 0.3 }} className={`z-10 w-[85%] h-[85%] rounded-full shadow-lg border ${cell==='w'?'bg-zinc-100 border-white':'bg-zinc-950 border-black'}`} />
                     )}
                   </AnimatePresence>
                 </div>
@@ -204,8 +204,8 @@ export default function OthelloArena() {
           <h2 className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">Oyun Statusu</h2>
           <div className="text-xl font-bold text-white mb-6">{status}</div>
           <div className="flex gap-2 mb-6">
-            <button onClick={()=>{setMode('bot');resetGame()}} className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 \${mode==='bot'?'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20':'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>Bot</button>
-            <button onClick={()=>{setMode('multiplayer');resetGame()}} className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 \${mode==='multiplayer'?'bg-blue-600 text-white shadow-lg shadow-blue-500/20':'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>Canlı</button>
+            <button onClick={()=>{setMode('bot');resetGame()}} className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 ${mode==='bot'?'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20':'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>Bot</button>
+            <button onClick={()=>{setMode('multiplayer');resetGame()}} className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 ${mode==='multiplayer'?'bg-blue-600 text-white shadow-lg shadow-blue-500/20':'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>Canlı</button>
           </div>
           {mode === 'multiplayer' && !roomId && (
             <button onClick={findMatch} disabled={isSearching} className="w-full py-3 mb-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-bold text-white transition disabled:opacity-50">
@@ -219,5 +219,7 @@ export default function OthelloArena() {
     </div>
   );
 }
+
+
 
 

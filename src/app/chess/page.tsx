@@ -278,13 +278,13 @@ return (
         <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 mb-6">
           <button 
             onClick={() => { setMode('bot'); resetGame(); }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'bot' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition ${mode === 'bot' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
             <Cpu className="w-4 h-4" /> Stockfish AI (Bot)
           </button>
           <button 
             onClick={() => { setMode('multiplayer'); resetGame(); }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition ${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
             <Users className="w-4 h-4" /> Canlı (Multiplayer)
           </button>
@@ -411,6 +411,7 @@ return (
     </div>
   );
 }
+
 
 
 

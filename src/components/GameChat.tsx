@@ -26,7 +26,7 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
       setMessages([]);
       return;
     }
-    const chatRef = ref(db, `games/\${gameName}/\${roomId}/chat`);
+    const chatRef = ref(db, `games/${gameName}/${roomId}/chat`);
     const unsub = onValue(chatRef, (snap) => {
       const data = snap.val();
       if (data) {
@@ -53,7 +53,7 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
     e.preventDefault();
     if (!text.trim() || !roomId) return;
     
-    const chatRef = ref(db, `games/\${gameName}/\${roomId}/chat`);
+    const chatRef = ref(db, `games/${gameName}/${roomId}/chat`);
     await push(chatRef, {
       sender: userName,
       text: text.trim(),
@@ -78,9 +78,9 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
           </div>
         ) : (
           messages.map(m => (
-            <div key={m.id} className={`flex flex-col max-w-[85%] \${m.sender === userName ? 'self-end items-end' : 'self-start items-start'}`}>
+            <div key={m.id} className={`flex flex-col max-w-[85%] ${m.sender === userName ? 'self-end items-end' : 'self-start items-start'}`}>
               <span className="text-[10px] text-zinc-500 font-bold mb-0.5 px-1">{m.sender}</span>
-              <div className={`px-3 py-2 rounded-2xl text-sm \${m.sender === userName ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-zinc-800 text-zinc-200 rounded-bl-sm'}`}>
+              <div className={`px-3 py-2 rounded-2xl text-sm ${m.sender === userName ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-zinc-800 text-zinc-200 rounded-bl-sm'}`}>
                 {m.text}
               </div>
             </div>
@@ -103,4 +103,5 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
     </div>
   );
 }
+
 
