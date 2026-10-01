@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {  ArrowLeft, Users, Shield, Swords , Flag , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
+import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
 import { OthelloEngine, Move } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
@@ -196,8 +197,23 @@ export default function OthelloArena() {
   let bCount = 0, wCount = 0;
   board.forEach(r => r.forEach(c => { if(c === 'b') bCount++; else if (c === 'w') wCount++; }));
 
+  
+  let gameResult: 'win' | 'loss' | 'draw' | null = null;
+  if (engine.winner) {
+    if (engine.winner === 'draw') {
+      gameResult = 'draw';
+    } else {
+      if (mode === 'multiplayer') {
+        gameResult = engine.winner === myColor ? 'win' : 'loss';
+      } else {
+        gameResult = engine.winner === 'b' ? 'win' : 'loss';
+      }
+    }
+  }
+  
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8 relative z-10 pt-24">
+      <EndGameModal isOpen={gameResult !== null} result={gameResult} onRematch={() => { setMode("bot"); resetGame(); }} />
       <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-white transition">
         <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-bold uppercase tracking-widest">Geri Qayıt</span>
       </Link>

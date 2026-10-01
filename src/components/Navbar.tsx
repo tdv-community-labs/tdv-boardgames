@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {  Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { ref, get } from 'firebase/database';
+import { getRank } from '@/utils/ranks';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
 export function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [elo, setElo] = useState<number>(1200);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMutedState, setIsMutedState] = useState(false);
@@ -18,7 +21,12 @@ export function Navbar() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+        if (currentUser) {
+          get(ref(db, `users/${currentUser.uid}`)).then(snap => {
+            if (snap.exists()) setElo(snap.val().elo || 1200);
+          });
+        }
+        setLoading(false);
     });
 
     const handleFullscreenChange = () => {
@@ -97,7 +105,7 @@ export function Navbar() {
             <div className="flex items-center gap-3">
               <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-lg transition-colors">
                 <User className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-bold text-white">{user.displayName || 'Oyunçu'}</span>
+                {(() => { const r = getRank(elo); return <span className="text-sm font-bold text-white flex items-center gap-2" title={r.name}>{user.displayName || 'Oyunçu'} <span className="text-xs">{r.icon}</span></span>; })()}
                 </Link>
                 <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Çıxış et">
                 <LogOut className="w-4 h-4" />
