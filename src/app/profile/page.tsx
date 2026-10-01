@@ -6,14 +6,14 @@ import { User, Trophy, Swords, Target, Edit2, LogOut, ArrowLeft } from 'lucide-r
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, updateProfile, signOut } from 'firebase/auth';
-import { ref, get } from 'firebase/database';
+import { ref, get, update } from 'firebase/database';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getRank } from '@/utils/ranks';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({ elo: 1200, wins: 0, losses: 0, winRate: '0%' });
+  const [stats, setStats] = useState<any>({ elo: 1200, wins: 0, losses: 0, winRate: '0%' });
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [avatar, setAvatar] = useState('😎');
@@ -59,6 +59,35 @@ export default function ProfilePage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Yüklənir...</div>;
   if (!user) return null;
 
+  
+  
+  const totalCoins = ((stats.wins || 0) * 15) + ((stats.losses || 0) * 2);
+  const currentCoins = totalCoins - (stats.spentCoins || 0);
+  const unlockedAvatars = stats.unlockedAvatars || [];
+  
+  const PREMIUM_AVATARS = [
+    { icon: '💎', cost: 100 },
+    { icon: '🚀', cost: 200 },
+    { icon: '🔥', cost: 400 },
+    { icon: '🦅', cost: 800 },
+    { icon: '🧿', cost: 1500 }
+  ];
+
+  const handleBuyAvatar = async (icon: string, cost: number) => {
+    if (currentCoins >= cost) {
+      if (confirm(`Bu avatarı ${cost} 🪙 müqabilində almaq istədiyinizə əminsiniz?`)) {
+        await update(ref(db, `users/${user!.uid}`), {
+          spentCoins: (stats.spentCoins || 0) + cost,
+          unlockedAvatars: [...unlockedAvatars, icon],
+          avatar: icon
+        });
+        setAvatar(icon);
+        toast.success('Avatar uğurla alındı!');
+      }
+    } else {
+      toast.error('Kifayət qədər qəpiyiniz yoxdur!');
+    }
+  };
   
   const totalMatches = (stats.wins || 0) + (stats.losses || 0);
   const currentLevel = Math.floor(Math.sqrt(totalMatches)) + 1;
@@ -226,4 +255,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+
+
 
