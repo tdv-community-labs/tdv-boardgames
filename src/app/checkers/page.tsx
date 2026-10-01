@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft } from 'lucide-react';
+import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
 import Link from 'next/link';
 import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
@@ -28,7 +28,7 @@ export default function CheckersArena() {
     if (engine.winner) return;
     const interval = setInterval(() => {
       if (engine.turn === 'w') {
-        setWhiteTime(t => { if (t <= 1) { engine.winner = 'b'; updateStatus(); return 0; } return t - 1; });
+        setWhiteTime(t => { if (t <= 1) { engine.winner = 'b'; updateStatus(); setBoard([...engine.board.map(r => [...r])]); return 0; } return t - 1; });
       } else {
         setBlackTime(t => { if (t <= 1) { engine.winner = 'w'; updateStatus(); return 0; } return t - 1; });
       }
@@ -215,6 +215,9 @@ export default function CheckersArena() {
     </div>
   );
 }
+
+
+
 
 
 

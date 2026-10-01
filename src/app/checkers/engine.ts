@@ -16,11 +16,13 @@ export class CheckersEngine {
 
   multiJumpPiece: {r: number, c: number} | null = null;
   private nextId = 1;
+  moveHistory: string[] = [];
 
   constructor() {
     this.board = Array(8).fill(null).map(() => Array(8).fill(null));
     this.turn = 'w';
     this.winner = null;
+    this.moveHistory = [];
     this.initBoard();
   }
 
@@ -78,6 +80,10 @@ export class CheckersEngine {
     return r >= 0 && r < 8 && c >= 0 && c < 8;
   }
 
+  toAlgebraic(r: number, c: number) {
+    return String.fromCharCode(97 + c) + (8 - r);
+  }
+
   move(m: Move): boolean {
     const valid = this.getValidMoves(this.turn);
     const isLegal = valid.some(v => v.fromRow === m.fromRow && v.fromCol === m.fromCol && 
@@ -88,6 +94,9 @@ export class CheckersEngine {
     let p = this.board[m.fromRow][m.fromCol];
     this.board[m.fromRow][m.fromCol] = null;
     this.board[m.toRow][m.toCol] = p;
+
+    let moveStr = `${this.toAlgebraic(m.fromRow, m.fromCol)}${m.jumped ? 'x' : '-'}${this.toAlgebraic(m.toRow, m.toCol)}`;
+    this.moveHistory.push(moveStr);
 
     if (m.jumped) {
       this.board[m.jumped.row][m.jumped.col] = null;
