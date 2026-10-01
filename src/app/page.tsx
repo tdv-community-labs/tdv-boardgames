@@ -7,6 +7,18 @@ import Link from 'next/link';
 import GlobalChat from '@/components/GlobalChat';
 
 const GAMES = [
+
+  {
+    id: "connect4",
+    name: "Dördünü Birləşdir",
+    icon: "🔴",
+    description: "Rəngli daşları salın və 4 daşı yan-yana, alt-alta və ya diaqonal birləşdirin.",
+    color: "from-red-500/20 to-red-900/40",
+    borderColor: "border-red-500/30",
+    textColor: "text-red-400",
+    players: "0",
+    badge: "YENİ"
+  },
   {
     id: "chess",
     name: "Şahmat",
