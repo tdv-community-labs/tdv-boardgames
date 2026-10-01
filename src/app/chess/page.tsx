@@ -10,7 +10,8 @@ import { io, Socket } from 'socket.io-client';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function ChessArena() {
-  const [game, setGame] = useState(new Chess());
+  const [game, setGame] = useState(() => { if (typeof window !== 'undefined') { const saved = localStorage.getItem('tdv-chess'); if (saved) return new Chess(saved); } return new Chess(); });
+  useEffect(() => { localStorage.setItem('tdv-chess', game.fen()); }, [game.fen()]);
   const [moves, setMoves] = useState<Move[]>([]);
   const [status, setStatus] = useState<string>('Oyun Başladı');
   const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
@@ -341,3 +342,4 @@ export default function ChessArena() {
     </div>
   );
 }
+

@@ -8,8 +8,10 @@ import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function CheckersArena() {
-  const [engine, setEngine] = useState(new CheckersEngine());
+  const [engine, setEngine] = useState(() => { const e = new CheckersEngine(); if (typeof window !== 'undefined') { const s = localStorage.getItem('tdv-checkers'); if (s) e.load(s); } return e; });
+
   const [board, setBoard] = useState<BoardState>(engine.board);
+  useEffect(() => { localStorage.setItem('tdv-checkers', engine.serialize()); }, [board, engine.turn]);
   const [status, setStatus] = useState<string>('Oyun Başladı. Gediş: Ağlar');
   
   const [selectedCell, setSelectedCell] = useState<{r: number, c: number} | null>(null);
@@ -215,6 +217,8 @@ export default function CheckersArena() {
     </div>
   );
 }
+
+
 
 
 

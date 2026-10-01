@@ -8,8 +8,10 @@ import { OthelloEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function OthelloArena() {
-  const [engine, setEngine] = useState(new OthelloEngine());
+  const [engine, setEngine] = useState(() => { const e = new OthelloEngine(); if (typeof window !== 'undefined') { const s = localStorage.getItem('tdv-othello'); if (s) e.load(s); } return e; });
+
   const [board, setBoard] = useState<BoardState>(engine.board);
+  useEffect(() => { localStorage.setItem('tdv-othello', engine.serialize()); }, [board, engine.turn]);
   const [status, setStatus] = useState<string>('Oyun Başladı. Gediş: Qaralar');
   
   const [validMoves, setValidMoves] = useState<Move[]>([]);
@@ -226,3 +228,5 @@ export default function OthelloArena() {
     </div>
   );
 }
+
+

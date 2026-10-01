@@ -26,6 +26,27 @@ export class CheckersEngine {
     this.initBoard();
   }
 
+  serialize(): string {
+    return JSON.stringify({
+      board: this.board,
+      turn: this.turn,
+      winner: this.winner,
+      multiJumpPiece: this.multiJumpPiece,
+      moveHistory: this.moveHistory
+    });
+  }
+
+  load(dataStr: string) {
+    try {
+      const data = JSON.parse(dataStr);
+      this.board = data.board;
+      this.turn = data.turn;
+      this.winner = data.winner;
+      this.multiJumpPiece = data.multiJumpPiece;
+      this.moveHistory = data.moveHistory;
+    } catch(e) {}
+  }
+
   initBoard() {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {

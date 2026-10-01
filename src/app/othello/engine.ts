@@ -26,6 +26,20 @@ export class OthelloEngine {
     this.initBoard();
   }
 
+  serialize(): string {
+    return JSON.stringify({ board: this.board, turn: this.turn, winner: this.winner, moveHistory: this.moveHistory });
+  }
+
+  load(dataStr: string) {
+    try {
+      const data = JSON.parse(dataStr);
+      this.board = data.board;
+      this.turn = data.turn;
+      this.winner = data.winner;
+      this.moveHistory = data.moveHistory;
+    } catch(e) {}
+  }
+
   initBoard() {
     this.board[3][3] = 'w';
     this.board[3][4] = 'b';

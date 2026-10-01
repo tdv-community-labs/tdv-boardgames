@@ -6,20 +6,49 @@ export class GoEngine {
   turn: 'b' | 'w'; // Black always plays first in Go
   size: number;
   lastMove: {r: number, c: number} | null;
+  winner: 'w' | 'b' | 'draw' | null = null;
+  moveHistory: string[] = [];
+  captures: { b: number, w: number } = { b: 0, w: 0 };
 
   constructor(size = 19) {
     this.size = size;
     this.board = Array(size).fill(null).map(() => Array(size).fill(null));
     this.turn = 'b';
     this.lastMove = null;
+    this.winner = null;
+    this.moveHistory = [];
+    this.captures = { b: 0, w: 0 };
+  }
+
+  serialize(): string {
+    return JSON.stringify({ board: this.board, turn: this.turn, lastMove: this.lastMove, winner: this.winner, moveHistory: this.moveHistory, captures: this.captures, size: this.size });
+  }
+
+  load(dataStr: string) {
+    try {
+      const data = JSON.parse(dataStr);
+      this.board = data.board;
+      this.turn = data.turn;
+      this.lastMove = data.lastMove;
+      this.winner = data.winner;
+      this.moveHistory = data.moveHistory;
+      this.captures = data.captures;
+      this.size = data.size;
+    } catch(e) {}
   }
 
   isValidPos(r: number, c: number) {
     return r >= 0 && r < this.size && c >= 0 && c < this.size;
   }
 
+  toAlgebraic(r: number, c: number) {
+    const letters = 'ABCDEFGHJKLMNOPQRST'; // I is usually skipped in Go
+    return letters[c] + (this.size - r);
+  }
+
   // Returns true if move is valid, false otherwise
   placeStone(r: number, c: number): boolean {
+    if (this.winner) return false;
     if (!this.isValidPos(r, c) || this.board[r][c] !== null) return false;
 
     // Place the stone temporarily
@@ -28,13 +57,14 @@ export class GoEngine {
     // Check captures of opponent stones
     let opponent = this.turn === 'b' ? 'w' : 'b';
     let capturedAny = false;
+    let capturedCount = 0;
     
     const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
     for (let [dr, dc] of dirs) {
       const nr = r + dr, nc = c + dc;
       if (this.isValidPos(nr, nc) && this.board[nr][nc] === opponent) {
         if (!this.hasLiberties(nr, nc, opponent)) {
-          this.captureGroup(nr, nc, opponent);
+          capturedCount += this.captureGroup(nr, nc, opponent);
           capturedAny = true;
         }
       }
@@ -46,6 +76,13 @@ export class GoEngine {
       this.board[r][c] = null;
       return false;
     }
+
+    if (this.turn === 'b') this.captures.b += capturedCount;
+    else this.captures.w += capturedCount;
+
+    let moveStr = this.toAlgebraic(r, c);
+    if (capturedAny) moveStr += 'x';
+    this.moveHistory.push(moveStr);
 
     this.lastMove = {r, c};
     this.turn = opponent as 'b'|'w';
@@ -77,9 +114,10 @@ export class GoEngine {
     return false;
   }
 
-  captureGroup(startR: number, startC: number, color: Piece) {
+  captureGroup(startR: number, startC: number, color: Piece): number {
     let queue = [{r: startR, c: startC}];
     this.board[startR][startC] = null; // capture
+    let count = 1;
 
     while (queue.length > 0) {
       const curr = queue.shift()!;
@@ -89,10 +127,12 @@ export class GoEngine {
         const nr = curr.r + dr, nc = curr.c + dc;
         if (this.isValidPos(nr, nc) && this.board[nr][nc] === color) {
           this.board[nr][nc] = null;
+          count++;
           queue.push({r: nr, c: nc});
         }
       }
     }
+    return count;
   }
 
   // Simple greedy bot

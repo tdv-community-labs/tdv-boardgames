@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ArrowLeft } from 'lucide-react';
+import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
 import Link from 'next/link';
 import { GoEngine, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function GoArena() {
-  const [engine, setEngine] = useState(new GoEngine(19));
+  const [engine, setEngine] = useState(() => { const e = new GoEngine(19); if (typeof window !== 'undefined') { const s = localStorage.getItem('tdv-go'); if (s) e.load(s); } return e; });
+
   const [board, setBoard] = useState<BoardState>(engine.board);
+  useEffect(() => { localStorage.setItem('tdv-go', engine.serialize()); }, [board, engine.turn]);
   const [status, setStatus] = useState<string>('Oyun Başladı. Gediş: Qaralar');
   
   const whitePlayer = { name: "Bot (Ağ)", elo: 1520 };
@@ -176,4 +178,7 @@ export default function GoArena() {
     </div>
   );
 }
+
+
+
 
