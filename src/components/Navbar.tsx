@@ -87,11 +87,11 @@ export function Navbar() {
             <div className="w-24 h-9 bg-zinc-800 animate-pulse rounded-xl" />
           ) : user ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+              <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-lg transition-colors">
                 <User className="w-4 h-4 text-purple-400" />
                 <span className="text-sm font-bold text-white">{user.displayName || 'Oyunçu'}</span>
-              </div>
-              <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Çıxış et">
+                </Link>
+                <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Çıxış et">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -106,3 +106,4 @@ export function Navbar() {
     </nav>
   );
 }
+
