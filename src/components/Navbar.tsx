@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {   Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { toast } from 'react-hot-toast';
 import { ref, get, set, onValue, onDisconnect } from 'firebase/database';
 import { getRank } from '@/utils/ranks';
 import { isMuted, getSoundTheme, setSoundTheme } from '@/utils/sounds';
@@ -22,6 +25,32 @@ export function Navbar() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMutedState, setIsMutedState] = useState(false);
   const [soundTheme, setSoundThemeState] = useState<'classic' | 'arcade' | 'zen'>('classic');
+
+  const [showDailyReward, setShowDailyReward] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const today = new Date().toDateString();
+      const lastReward = localStorage.getItem('tdv-last-reward');
+      if (lastReward !== today) {
+        setTimeout(() => setShowDailyReward(true), 1500); // show shortly after load
+      }
+    }
+  }, [user]);
+
+  const claimDailyReward = async () => {
+    if (!user) return;
+    try {
+      const snap = await get(ref(db, `users/${user.uid}`));
+      const currentBonus = snap.val()?.bonusCoins || 0;
+      await set(ref(db, `users/${user.uid}/bonusCoins`), currentBonus + 50);
+      localStorage.setItem('tdv-last-reward', new Date().toDateString());
+      setShowDailyReward(false);
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      toast.success('Gündəlik mükafat alındı! +50 🪙');
+    } catch(e){}
+  };
+
   
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
@@ -76,7 +105,7 @@ export function Navbar() {
               if (snap.val().avatar) setAvatar(snap.val().avatar);
               const totalMatches = (snap.val().wins || 0) + (snap.val().losses || 0);
               setLevel(Math.floor(Math.sqrt(totalMatches)) + 1);
-              const totalCoins = ((snap.val().wins || 0) * 15) + ((snap.val().losses || 0) * 2);
+              const totalCoins = ((snap.val().wins || 0) * 15) + ((snap.val().losses || 0) * 2) + (snap.val().bonusCoins || 0);
               setCoins(totalCoins - (snap.val().spentCoins || 0));
             }
           });

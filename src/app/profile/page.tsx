@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
   
   
-  const totalCoins = ((stats.wins || 0) * 15) + ((stats.losses || 0) * 2);
+  const totalCoins = ((stats.wins || 0) * 15) + ((stats.losses || 0) * 2) + (stats.bonusCoins || 0);
   const currentCoins = totalCoins - (stats.spentCoins || 0);
   const unlockedAvatars = stats.unlockedAvatars || [];
   
