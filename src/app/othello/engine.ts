@@ -1,33 +1,29 @@
-export type Piece = 'w' | 'b' | null;
-export type BoardState = Piece[][];
-
-export interface Flip {
-  r: number;
-  c: number;
-}
+export type Player = 'b' | 'w';
+export type BoardState = (Player | null)[][];
 
 export interface Move {
   r: number;
   c: number;
-  flips: Flip[];
+  flips: {r: number, c: number}[];
 }
 
 export class OthelloEngine {
   board: BoardState;
-  turn: 'b' | 'w'; // Black always goes first in Othello
-  winner: 'w' | 'b' | 'draw' | null;
-  moveHistory: string[] = [];
+  turn: Player;
+  winner: Player | 'draw' | null;
 
   constructor() {
     this.board = Array(8).fill(null).map(() => Array(8).fill(null));
-    this.turn = 'b';
+    this.board[3][3] = 'w';
+    this.board[3][4] = 'b';
+    this.board[4][3] = 'b';
+    this.board[4][4] = 'w';
+    this.turn = 'b'; // Black always goes first
     this.winner = null;
-    this.moveHistory = [];
-    this.initBoard();
   }
 
   serialize(): string {
-    return JSON.stringify({ board: this.board, turn: this.turn, winner: this.winner, moveHistory: this.moveHistory });
+    return JSON.stringify({ board: this.board, turn: this.turn, winner: this.winner });
   }
 
   load(dataStr: string) {
@@ -36,125 +32,85 @@ export class OthelloEngine {
       this.board = data.board;
       this.turn = data.turn;
       this.winner = data.winner;
-      this.moveHistory = data.moveHistory;
     } catch(e) {}
   }
 
-  initBoard() {
-    this.board[3][3] = 'w';
-    this.board[3][4] = 'b';
-    this.board[4][3] = 'b';
-    this.board[4][4] = 'w';
-  }
-
-  isValidPos(r: number, c: number) {
-    return r >= 0 && r < 8 && c >= 0 && c < 8;
-  }
-
-  getValidMoves(player: 'b' | 'w'): Move[] {
+  getValidMoves(player: Player): Move[] {
     const moves: Move[] = [];
-    const opponent = player === 'b' ? 'w' : 'b';
-    const dirs = [
-      [-1, -1], [-1, 0], [-1, 1],
-      [0, -1],           [0, 1],
-      [1, -1],  [1, 0],  [1, 1]
-    ];
-
+    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (this.board[r][c] !== null) continue;
-
-        let flips: Flip[] = [];
-        
+        let flips: {r: number, c: number}[] = [];
         for (let [dr, dc] of dirs) {
-          let nr = r + dr, nc = c + dc;
-          let tempFlips: Flip[] = [];
-          
-          while (this.isValidPos(nr, nc) && this.board[nr][nc] === opponent) {
-            tempFlips.push({ r: nr, c: nc });
-            nr += dr;
-            nc += dc;
-          }
-
-          if (this.isValidPos(nr, nc) && this.board[nr][nc] === player && tempFlips.length > 0) {
-            flips.push(...tempFlips);
+          let currR = r + dr;
+          let currC = c + dc;
+          let dirFlips = [];
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const piece = this.board[currR][currC];
+            if (piece === null) break;
+            if (piece !== player) {
+              dirFlips.push({r: currR, c: currC});
+            } else {
+              if (dirFlips.length > 0) flips.push(...dirFlips);
+              break;
+            }
+            currR += dr;
+            currC += dc;
           }
         }
-
-        if (flips.length > 0) {
-          moves.push({ r, c, flips });
-        }
+        if (flips.length > 0) moves.push({ r, c, flips });
       }
     }
     return moves;
   }
 
-  toAlgebraic(r: number, c: number) {
-    return String.fromCharCode(97 + c) + (8 - r);
-  }
-
   move(r: number, c: number): boolean {
     if (this.winner) return false;
-    
-    const validMoves = this.getValidMoves(this.turn);
-    const m = validMoves.find(m => m.r === r && m.c === c);
-    
+    const moves = this.getValidMoves(this.turn);
+    const m = moves.find(m => m.r === r && m.c === c);
     if (!m) return false;
 
-    // Apply move
     this.board[r][c] = this.turn;
-    m.flips.forEach(f => {
-      this.board[f.r][f.c] = this.turn;
-    });
+    m.flips.forEach(f => this.board[f.r][f.c] = this.turn);
 
-    this.moveHistory.push(this.toAlgebraic(r, c));
-
-    // Switch turns
+    // Swap turn
     const nextPlayer = this.turn === 'b' ? 'w' : 'b';
     const nextMoves = this.getValidMoves(nextPlayer);
     
     if (nextMoves.length > 0) {
       this.turn = nextPlayer;
     } else {
-      // Next player has no moves, so current player goes again. If neither has moves, game over.
-      const currentMovesAgain = this.getValidMoves(this.turn);
-      if (currentMovesAgain.length === 0) {
-        this.checkWin();
-      } else {
-        this.moveHistory.push('pass');
+      // Next player has no moves. Can current player go again?
+      const currMoves = this.getValidMoves(this.turn);
+      if (currMoves.length === 0) {
+        this.checkWinner();
       }
     }
     
-    // Always check win condition (board might be full)
-    let isFull = true;
-    for(let i=0; i<8; i++) for(let j=0; j<8; j++) if(!this.board[i][j]) isFull = false;
-    if (isFull) this.checkWin();
-
     return true;
   }
 
-  checkWin() {
-    let b = 0, w = 0;
+  checkWinner() {
+    let bCount = 0, wCount = 0;
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
-        if (this.board[r][c] === 'b') b++;
-        else if (this.board[r][c] === 'w') w++;
+        if (this.board[r][c] === 'b') bCount++;
+        else if (this.board[r][c] === 'w') wCount++;
       }
     }
-    if (b > w) this.winner = 'b';
-    else if (w > b) this.winner = 'w';
+    if (bCount > wCount) this.winner = 'b';
+    else if (wCount > bCount) this.winner = 'w';
     else this.winner = 'draw';
   }
 
-  // AI Logic (Greedy positional)
   getBestMove(): Move | null {
     const validMoves = this.getValidMoves(this.turn);
     if (validMoves.length === 0) return null;
-
     let bestScore = -Infinity;
     let bestMoves: Move[] = [];
-
-    const positionalValues = [
+    const pos = [
       [120, -20,  20,   5,   5,  20, -20, 120],
       [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
       [ 20,  -5,  15,   3,   3,  15,  -5,  20],
@@ -164,17 +120,15 @@ export class OthelloEngine {
       [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
       [120, -20,  20,   5,   5,  20, -20, 120]
     ];
-
-    for (let move of validMoves) {
-      let score = positionalValues[move.r][move.c] + move.flips.length; // Positional value + flip count
+    for (let m of validMoves) {
+      let score = pos[m.r][m.c] + m.flips.length;
       if (score > bestScore) {
         bestScore = score;
-        bestMoves = [move];
+        bestMoves = [m];
       } else if (score === bestScore) {
-        bestMoves.push(move);
+        bestMoves.push(m);
       }
     }
-
     return bestMoves[Math.floor(Math.random() * bestMoves.length)];
   }
 }
