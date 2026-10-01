@@ -13,6 +13,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [elo, setElo] = useState<number>(1200);
+  const [avatar, setAvatar] = useState<string>('😎');
   const [onlineCount, setOnlineCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -66,7 +67,10 @@ export function Navbar() {
       setUser(currentUser);
         if (currentUser) {
           get(ref(db, `users/${currentUser.uid}`)).then(snap => {
-            if (snap.exists()) setElo(snap.val().elo || 1200);
+            if (snap.exists()) {
+              setElo(snap.val().elo || 1200);
+              if (snap.val().avatar) setAvatar(snap.val().avatar);
+            }
           });
         }
         setLoading(false);

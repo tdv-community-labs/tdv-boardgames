@@ -16,6 +16,8 @@ export default function ProfilePage() {
   const [stats, setStats] = useState({ elo: 1200, wins: 0, losses: 0, winRate: '0%' });
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
+  const [avatar, setAvatar] = useState('😎');
+  const AVATARS = ['😎','🤖','👽','👻','🐱','🐉','🦄','💀','👑','👾','🤡','🦁'];
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 

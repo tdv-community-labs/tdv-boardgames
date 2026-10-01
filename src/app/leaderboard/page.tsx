@@ -12,6 +12,7 @@ interface Player {
   uid: string;
   rank?: number;
   displayName: string;
+    avatar?: string;
   elo: number;
   winRate: string;
 }
