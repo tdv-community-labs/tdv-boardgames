@@ -229,6 +229,44 @@ export default function ProfilePage() {
             </motion.div>
           </div>
 
+            
+              {/* Per-Game Breakdown */}
+              <div className="md:col-span-2 mt-2 mb-4">
+                <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">🎮 Oyun Statistikası</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { key: 'chess',    name: 'Şahmat',             icon: '♟️' },
+                    { key: 'checkers', name: 'Dama',               icon: '🔴' },
+                    { key: 'go',       name: 'Qo',                 icon: '⚫' },
+                    { key: 'othello',  name: 'Othello',            icon: '⚪' },
+                    { key: 'connect4', name: 'Dördünü Birləşdir',  icon: '🟡' },
+                  ].map(g => {
+                    const gs = stats.gameStats?.[g.key] || { wins: 0, losses: 0 };
+                    const total = gs.wins + gs.losses;
+                    const winPct = total > 0 ? Math.round((gs.wins / total) * 100) : 0;
+                    return (
+                      <div key={g.key} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex flex-col gap-1.5 hover:border-zinc-700 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{g.icon}</span>
+                          <span className="text-xs font-black text-white truncate">{g.name}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-emerald-400 font-bold">{gs.wins}Q</span>
+                          <span className="text-red-400 font-bold">{gs.losses}M</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-emerald-500 rounded-full transition-all"
+                            style={{ width: `${winPct}%` }}
+                          />
+                        </div>
+                        <div className="text-[10px] text-zinc-600 text-right">{total > 0 ? `${winPct}% qələbə` : 'Oynanmayıb'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+  
             {/* Level & EXP Progress */}
             <div className="md:col-span-2 mt-2 mb-6">
               <div className="flex items-center justify-between mb-2">
