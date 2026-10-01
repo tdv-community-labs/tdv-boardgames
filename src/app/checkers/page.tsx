@@ -14,6 +14,27 @@ export default function CheckersArena() {
   
   const [selectedCell, setSelectedCell] = useState<{r: number, c: number} | null>(null);
   const [validMoves, setValidMoves] = useState<Move[]>([]);
+
+  const [whiteTime, setWhiteTime] = useState(600);
+  const [blackTime, setBlackTime] = useState(600);
+  
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `:`;
+  };
+
+  useEffect(() => {
+    if (engine.winner) return;
+    const interval = setInterval(() => {
+      if (engine.turn === 'w') {
+        setWhiteTime(t => { if (t <= 1) { engine.winner = 'b'; updateStatus(); return 0; } return t - 1; });
+      } else {
+        setBlackTime(t => { if (t <= 1) { engine.winner = 'w'; updateStatus(); return 0; } return t - 1; });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [engine.turn, engine.winner]);
   
   const whitePlayer = { name: "Sən (Ağ)", elo: 1450 };
   const blackPlayer = { name: "Bot (Qara)", elo: 1520 };
@@ -51,7 +72,7 @@ export default function CheckersArena() {
     const piece = board[r][c];
     
     // If we click one of our pieces, select it
-    if (piece && piece.toLowerCase() === 'w') {
+    if (piece && piece.color.toLowerCase() === 'w') {
       const allMoves = engine.getValidMoves('w');
       const pieceMoves = allMoves.filter(m => m.fromRow === r && m.fromCol === c);
       setSelectedCell({r, c});
@@ -86,6 +107,8 @@ export default function CheckersArena() {
     setSelectedCell(null);
     setValidMoves([]);
     setStatus('Oyun Başladı. Gediş: Ağlar');
+    setWhiteTime(600);
+    setBlackTime(600);
   };
 
   return (
@@ -109,7 +132,7 @@ export default function CheckersArena() {
                 {blackPlayer.name} <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{blackPlayer.elo}</span>
               </div>
               <div className="text-xs text-red-400 flex items-center gap-1 font-mono">
-                <Clock className="w-3 h-3" /> 10:00
+                <Clock className="w-3 h-3" /> {formatTime(blackTime)}
               </div>
             </div>
           </div>
@@ -138,14 +161,15 @@ export default function CheckersArena() {
                     {/* Piece */}
                     {cell && (
                       <motion.div 
+                        layoutId={cell.id}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className={`z-10 w-[80%] h-[80%] rounded-full shadow-inner flex items-center justify-center border-4 ${
-                          cell.toLowerCase() === 'w' ? 'bg-zinc-200 border-white' : 'bg-zinc-800 border-zinc-950'
+                          cell.color.toLowerCase() === 'w' ? 'bg-zinc-200 border-white' : 'bg-zinc-800 border-zinc-950'
                         } ${isSelected ? 'ring-4 ring-red-500 ring-offset-2 ring-offset-transparent' : ''}`}
                       >
-                        <div className={`w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center font-black ${cell.toLowerCase() === 'w' ? 'border-zinc-300 text-zinc-400' : 'border-zinc-700 text-zinc-500'}`}>
-                          {cell === 'W' || cell === 'B' ? 'K' : ''}
+                        <div className={`w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center font-black ${cell.color.toLowerCase() === 'w' ? 'border-zinc-300 text-zinc-400' : 'border-zinc-700 text-zinc-500'}`}>
+                          {cell.color === 'W' || cell.color === 'B' ? 'K' : ''}
                         </div>
                       </motion.div>
                     )}
@@ -167,7 +191,7 @@ export default function CheckersArena() {
                 {whitePlayer.name} <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{whitePlayer.elo}</span>
               </div>
               <div className="text-xs text-emerald-400 flex items-center gap-1 font-mono">
-                <Clock className="w-3 h-3" /> 10:00
+                <Clock className="w-3 h-3" /> {formatTime(whiteTime)}
               </div>
             </div>
           </div>
@@ -191,3 +215,8 @@ export default function CheckersArena() {
     </div>
   );
 }
+
+
+
+
+
