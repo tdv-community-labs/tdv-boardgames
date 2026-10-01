@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {   Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
-import { ref, get } from 'firebase/database';
+import { ref, get, set, onValue, onDisconnect } from 'firebase/database';
 import { getRank } from '@/utils/ranks';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
@@ -13,11 +13,29 @@ export function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [elo, setElo] = useState<number>(1200);
+  const [onlineCount, setOnlineCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMutedState, setIsMutedState] = useState(false);
   
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  
+  useEffect(() => {
+    const presenceRef = ref(db, 'presence');
+    const unsubPresence = onValue(presenceRef, (snap) => {
+      setOnlineCount(snap.size || 0);
+    });
+    return () => unsubPresence();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const myPresenceRef = ref(db, `presence/${user.uid}`);
+      set(myPresenceRef, true);
+      onDisconnect(myPresenceRef).remove();
+    }
+  }, [user]);
   
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -106,8 +124,17 @@ export function Navbar() {
           <Link href="/leaderboard" className={`text-sm font-bold flex items-center gap-2 transition-colors ${pathname === '/leaderboard' ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-400'}`}>
             <Trophy className="w-4 h-4" />
             <span className="hidden sm:block">Reytinq</span>
-          </Link>
-        </div>
+            </Link>
+
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-full">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-bold text-zinc-400">{onlineCount} onlayn</span>
+          </div>
+  
+          </div>
 
         {/* Auth & Tools */}
         <div className="flex items-center gap-2 sm:gap-4">

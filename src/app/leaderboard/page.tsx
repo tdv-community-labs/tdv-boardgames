@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { ref, onValue } from 'firebase/database';
+import { getRank } from '@/utils/ranks';
+import confetti from 'canvas-confetti';
 
 interface Player {
   uid: string;
@@ -18,6 +20,34 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
+  
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#fbbf24', '#f59e0b', '#d97706']
+        });
+      }, 500);
+    }
+  }, []);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#fbbf24', '#f59e0b', '#d97706']
+        });
+      }, 500);
+    }
+  }, []);
+  
   useEffect(() => {
     const usersRef = ref(db, 'users');
     const unsubscribe = onValue(usersRef, (snap) => {
