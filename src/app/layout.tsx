@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const jbMono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jb-mono' });
 
 export const metadata: Metadata = {
-  title: "TDV Arena | Şahmat & Dama Klubu",
+  title: "TDV Arena | �ahmat & Dama Klubu", manifest: "/manifest.json", themeColor: "#f59e0b",
   description: "TDV Community Labs tərəfindən yaradılmış onlayn stolüstü oyunlar arenası.",
 };
 
@@ -37,3 +37,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

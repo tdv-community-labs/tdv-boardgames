@@ -6,6 +6,7 @@ import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect } from 'firebase/database';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -170,7 +171,7 @@ export default function ChessArena() {
       setRoomId(newRoomId);
       setMyColor('b');
       resetGame();
-      setStatus('Oyun Baþladý! Uðurlar.'); toast.success('Oyun Baþladý! Uðurlar.', { icon: '??' }); playMoveSound();
+      setStatus('Oyun Baï¿½ladï¿½! Uï¿½urlar.'); toast.success('Oyun Baï¿½ladï¿½! Uï¿½urlar.', { icon: '??' }); playMoveSound();
       setIsSearching(false);
     } else {
       await set(waitingRef, user.uid);
@@ -183,7 +184,7 @@ export default function ChessArena() {
           setRoomId(foundRoomId);
           setMyColor('w');
           resetGame();
-          setStatus('Oyun Baþladý! Uðurlar.'); toast.success('Oyun Baþladý! Uðurlar.', { icon: '??' }); playMoveSound();
+          setStatus('Oyun Baï¿½ladï¿½! Uï¿½urlar.'); toast.success('Oyun Baï¿½ladï¿½! Uï¿½urlar.', { icon: '??' }); playMoveSound();
           setIsSearching(false);
           remove(matchRef);
         }

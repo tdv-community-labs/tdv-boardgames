@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, ArrowLeft, Flag, Shield, Swords } from 'lucide-react';
 import Link from 'next/link';
+import GameChat from '@/components/GameChat';
 import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 import { auth, db } from '@/lib/firebase';
