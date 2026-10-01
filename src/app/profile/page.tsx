@@ -6,7 +6,7 @@ import { User, Trophy, Swords, Target, Edit2, LogOut, ArrowLeft } from 'lucide-r
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, updateProfile, signOut } from 'firebase/auth';
-import { ref, get, update } from 'firebase/database';
+import { ref, get, update, query, orderByChild, limitToLast } from 'firebase/database';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getRank } from '@/utils/ranks';
@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [avatar, setAvatar] = useState('😎');
+  const [matchHistory, setMatchHistory] = useState<any[]>([]);
   const [banner, setBanner] = useState('default');
   const AVATARS = ['😎','🤖','👽','👻','🐱','🐉','🦄','💀','👑','👾','🤡','🦁'];
   const [loading, setLoading] = useState(true);
@@ -289,7 +290,38 @@ export default function ProfilePage() {
               <div className="text-[10px] text-zinc-500 mt-2 text-right">Növbəti səviyyəyə: {nextLevelMatches - totalMatches} oyun</div>
             </div>
   
-          {/* Achievements Section */}
+          
+              {/* Match History */}
+              {matchHistory.length > 0 && (
+                <div className="md:col-span-3 mt-2">
+                  <h3 className="text-xl font-black text-white mb-4 flex items-center gap-2">
+                    📜 Son Oyunlar
+                  </h3>
+                  <div className="flex flex-col gap-2">
+                    {matchHistory.map((m: any) => {
+                      const GAME_ICONS: Record<string, string> = { chess: '♟️', checkers: '🔴', go: '⚫', othello: '⚪', connect4: '🟡' };
+                      const GAME_NAMES: Record<string, string> = { chess: 'Şahmat', checkers: 'Dama', go: 'Qo', othello: 'Othello', connect4: 'Dördünü Birləşdir' };
+                      const isWin = m.result === 'win';
+                      const date = new Date(m.timestamp);
+                      return (
+                        <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isWin ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                          <span className="text-2xl flex-shrink-0">{GAME_ICONS[m.game] || '🎮'}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-white">{GAME_NAMES[m.game] || m.game}</div>
+                            <div className="text-xs text-zinc-500">{date.toLocaleDateString('az-AZ')} {date.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                          <div className={`flex flex-col items-end flex-shrink-0`}>
+                            <span className={`text-sm font-black ${isWin ? 'text-emerald-400' : 'text-red-400'}`}>{isWin ? 'Qələbə' : 'Məğlubiyyət'}</span>
+                            <span className={`text-xs font-bold ${isWin ? 'text-emerald-500' : 'text-red-500'}`}>{isWin ? '+25' : '-25'} ELO</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+  
+                {/* Achievements Section */}
           <div className="md:col-span-3 mt-4">
             <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2">
               🏆 Nailiyyətlər Nişanları

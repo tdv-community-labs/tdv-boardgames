@@ -1,41 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+const fs = require('fs');
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+let css = fs.readFileSync('src/app/globals.css', 'utf8');
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-@keyframes float-up {
-  0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
-  20% { opacity: 1; transform: translateY(70vh) scale(1.2); }
-  80% { opacity: 1; transform: translateY(20vh) scale(1); }
-  100% { transform: translateY(-10vh) scale(0.8); opacity: 0; }
-}
-.animate-float-up {
-  animation: float-up 4s ease-out forwards;
-}
-
+if (!css.includes('starfield')) {
+  css += `
 /* Animated Starfield */
 .starfield {
   position: fixed;
@@ -91,4 +59,36 @@ body {
   0%,100% { transform: translate(0,0) scale(1); }
   33%      { transform: translate(30px,-20px) scale(1.1); }
   66%      { transform: translate(-20px,15px) scale(0.95); }
+}
+`;
+  fs.writeFileSync('src/app/globals.css', css, 'utf8');
+}
+
+// Inject starfield into homepage
+let page = fs.readFileSync('src/app/page.tsx', 'utf8');
+if (!page.includes('starfield')) {
+  page = page.replace(
+    /return \(\n\s*<main/,
+    `return (
+    <main`
+  );
+  page = page.replace(
+    /<main className="/,
+    `<>
+      {/* Animated background */}
+      <div className="starfield" aria-hidden="true" />
+      <div className="glow-orb w-96 h-96 bg-blue-600 top-1/4 left-1/4" aria-hidden="true" />
+      <div className="glow-orb w-80 h-80 bg-purple-600 top-1/2 right-1/4" style={{ animationDelay: '-7s' }} aria-hidden="true" />
+      <div className="glow-orb w-64 h-64 bg-emerald-600 bottom-1/4 left-1/3" style={{ animationDelay: '-3s' }} aria-hidden="true" />
+      <main className="`
+  );
+
+  // Find and close the main/return properly
+  // Find last </main> and add </>
+  const lastMain = page.lastIndexOf('</main>');
+  if (lastMain !== -1) {
+    page = page.slice(0, lastMain + 7) + '\n    </>' + page.slice(lastMain + 7);
+  }
+
+  fs.writeFileSync('src/app/page.tsx', page, 'utf8');
 }
