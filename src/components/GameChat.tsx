@@ -16,10 +16,13 @@ interface ChatMessage {
   timestamp: number;
 }
 
+const EMOJIS = ['??', '??', '??', '??', '??', '??', '??', '??', '??'];
 export default function GameChat({ roomId, gameName, userName }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [floatingEmojis, setFloatingEmojis] = useState<{id: string, emoji: string, left: number}[]>([]);
+  
 
   useEffect(() => {
     if (!roomId) {
@@ -73,7 +76,7 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
     });
   };
   
-  const EMOJIS = ['👍', '😂', '😡', '😱', '👏', '🤝'];
+  
   
   if (!roomId) return null;
 
@@ -130,5 +133,6 @@ export default function GameChat({ roomId, gameName, userName }: ChatProps) {
     </div>
   );
 }
+
 
 
