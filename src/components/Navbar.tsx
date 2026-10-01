@@ -7,6 +7,7 @@ import {   Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, 
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, onValue, onDisconnect } from 'firebase/database';
 import { getRank } from '@/utils/ranks';
+import { isMuted, getSoundTheme, setSoundTheme } from '@/utils/sounds';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
 export function Navbar() {
@@ -18,6 +19,7 @@ export function Navbar() {
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMutedState, setIsMutedState] = useState(false);
+  const [soundTheme, setSoundThemeState] = useState<'classic' | 'arcade' | 'zen'>('classic');
   
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
@@ -87,6 +89,34 @@ export function Navbar() {
     };
   }, []);
 
+  
+  const cycleSoundTheme = () => {
+    const themes: ('classic' | 'arcade' | 'zen')[] = ['classic', 'arcade', 'zen'];
+    const nextIdx = (themes.indexOf(soundTheme) + 1) % themes.length;
+    const nextTheme = themes[nextIdx];
+    setSoundTheme(nextTheme);
+    setSoundThemeState(nextTheme);
+    
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext || isMuted()) return;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      if (nextTheme === 'arcade') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(600, ctx.currentTime);
+      } else if (nextTheme === 'zen') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, ctx.currentTime);
+      } else {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(400, ctx.currentTime);
+      }
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+      osc.connect(gainNode); gainNode.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } catch(e){}
+  };
+  
   const handleToggleMute = () => {
     const muted = localStorage.getItem('tdv-muted') === 'true';
     localStorage.setItem('tdv-muted', (!muted).toString());
