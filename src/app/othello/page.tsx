@@ -163,7 +163,7 @@ export default function OthelloArena() {
       </Link>
       
       <div className="flex-1 flex flex-col items-center justify-center relative">
-        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mb-8 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[80vh] flex items-center justify-between mb-8 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center font-bold text-black border-2 border-white shadow-md">W</div>
             <div className="font-bold text-white">{mode==='multiplayer'?(myColor==='w'?user?.displayName||'Siz':'Rəqib'):'Bot (Ağ)'}</div>
@@ -171,7 +171,7 @@ export default function OthelloArena() {
           <div className="text-2xl font-black text-white px-4 bg-zinc-950 rounded-xl py-1">{wCount}</div>
         </div>
 
-        <div className="w-full max-w-full sm:max-w-[65vh] aspect-square rounded-sm p-2 bg-[#16a34a] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-[12px] border-zinc-900">
+        <div className="w-full max-w-full sm:max-w-[80vh] aspect-square rounded-sm p-2 bg-[#16a34a] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-[12px] border-zinc-900">
           <div className="grid grid-cols-8 grid-rows-8 w-full h-full border border-[#14532d]">
             {board.map((row, r) => row.map((cell, c) => {
               const isMove = validMoves.some(m => m.r === r && m.c === c);
@@ -190,7 +190,7 @@ export default function OthelloArena() {
           </div>
         </div>
 
-        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mt-8 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <div className="w-full max-w-full sm:max-w-[80vh] flex items-center justify-between mt-8 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-zinc-950 flex items-center justify-center font-bold text-white border-2 border-black shadow-md">B</div>
             <div className="font-bold text-white">{mode==='multiplayer'?(myColor==='b'?user?.displayName||'Siz':'Rəqib'):'Sən (Qara)'}</div>
@@ -219,4 +219,5 @@ export default function OthelloArena() {
     </div>
   );
 }
+
 
