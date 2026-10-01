@@ -23,6 +23,8 @@ interface Player {
 
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [rawUsers, setRawUsers] = useState<any>({});
   const [sortBy, setSortBy] = useState<'elo' | 'wins' | 'coins' | 'level'>('elo');
   const [loading, setLoading] = useState(true);
 
