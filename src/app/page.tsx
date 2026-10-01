@@ -78,7 +78,7 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
   };
 
   return (
-    <Link href={game.id === 'othello' ? '#' : `/${game.id}`} passHref legacyBehavior>
+    <Link href={`/${game.id}`} passHref legacyBehavior>
       <motion.a
         ref={ref}
         onMouseMove={handleMouseMove}
