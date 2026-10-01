@@ -1,16 +1,32 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Trophy, User, LogIn } from 'lucide-react';
+import { Gamepad2, Trophy, User, LogIn, LogOut } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
 export function Navbar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
   
   return (
     <nav className="fixed top-0 left-0 w-full z-50 px-6 py-4">
-      <div className="max-w-7xl mx-auto bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-2xl flex items-center justify-between px-6 py-3 shadow-2xl">
+      <div className="max-w-7xl mx-auto bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl flex items-center justify-between px-6 py-3 shadow-2xl">
         
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
@@ -35,11 +51,30 @@ export function Navbar() {
         </div>
 
         {/* Auth */}
-        <div className="flex items-center">
-          <Link href="/login" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all active:scale-95">
-            <LogIn className="w-4 h-4" />
-            <span>Giriş</span>
-          </Link>
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-semibold text-zinc-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Canlı (Firebase)
+          </div>
+
+          {loading ? (
+            <div className="w-24 h-9 bg-zinc-800 animate-pulse rounded-xl" />
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <User className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-bold text-white">{user.displayName || 'Oyunçu'}</span>
+              </div>
+              <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Çıxış et">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all active:scale-95">
+              <LogIn className="w-4 h-4" />
+              <span>Giriş</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

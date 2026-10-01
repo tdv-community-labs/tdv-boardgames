@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const jbMono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jb-mono' });
@@ -24,30 +25,9 @@ export default function RootLayout({
           <div className="absolute bottom-0 w-full h-[50vh] bg-gradient-to-t from-purple-900/10 to-transparent"></div>
         </div>
         
-        {/* Navbar Header */}
-        <header className="fixed top-0 left-0 right-0 h-16 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl z-50 flex items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <a href="/" className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold hover:scale-105 transition-transform">
-              T
-            </a>
-            <div>
-              <h1 className="text-sm font-black tracking-tight text-white leading-tight">TDV ARENA</h1>
-              <span className="text-[10px] text-purple-400 font-bold tracking-widest uppercase block">Stolüstü Oyunlar</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="/leaderboard" className="hidden sm:block text-xs font-bold text-zinc-400 hover:text-white transition">Reytinq</a>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live Server
-            </div>
-            <a href="/login" className="text-xs font-bold px-4 py-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition">
-              Giriş
-            </a>
-          </div>
-        </header>
+        <Navbar />
 
-        <main className="pt-16 min-h-screen">
+        <main className="pt-24 min-h-screen">
           {children}
         </main>
       </body>

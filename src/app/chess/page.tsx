@@ -6,7 +6,9 @@ import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { io, Socket } from 'socket.io-client';
+import { auth, db } from '@/lib/firebase';
+import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect } from 'firebase/database';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
 
 export default function ChessArena() {
@@ -18,7 +20,7 @@ export default function ChessArena() {
   const [difficulty, setDifficulty] = useState<number>(10); // 1-20
   
   // Multiplayer State
-  const [socket, setSocket] = useState<Socket | null>(null);
+  
   const [isSearching, setIsSearching] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [myColor, setMyColor] = useState<'w' | 'b'>('w');
@@ -70,52 +72,82 @@ export default function ChessArena() {
     };
   }, [mode]);
 
-  // Socket.IO Effect
+  // Firebase Matchmaking & Game Sync
+  const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
-    if (mode === 'multiplayer') {
-      const newSocket = io();
-      setSocket(newSocket);
+    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
 
-      newSocket.on('waiting_for_match', () => {
-        setIsSearching(true);
-        setStatus('RÉ™qib axtarÄ±lÄ±r...');
-      });
-
-      newSocket.on('match_found', (data) => {
-        setIsSearching(false);
-        setRoomId(data.roomId);
-        setMyColor(data.whiteId === newSocket.id ? 'w' : 'b');
-        resetGame();
-        setStatus('Oyun BaÅŸladÄ±! UÄŸurlar.');
-      });
-
-      newSocket.on('opponent_moved', (move) => {
-        setGame((g) => {
-          const newGame = new Chess(g.fen());
-          const moveResult = newGame.move(move);
-          
-          if (moveResult) {
-            if (moveResult.captured) playCaptureSound();
-            else playMoveSound();
-          }
-
+  useEffect(() => {
+    if (mode === 'multiplayer' && user && roomId) {
+      const gameRef = ref(db, "games/chess/");
+      const unsubscribe = onValue(gameRef, (snap) => {
+        const data = snap.val();
+        if (data && data.fen !== game.fen()) {
+          const newGame = new Chess(data.fen);
+          setGame(newGame);
           setMoves(newGame.history({ verbose: true }) as Move[]);
           updateStatus(newGame);
-          return newGame;
-        });
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [mode, roomId, user, game]);
+
+  const findMatch = async () => {
+    if (!user) {
+      alert('Multiplayer oynamaq üçün hesabýnýza daxil olmalýsýnýz!');
+      return;
+    }
+    setIsSearching(true);
+    setStatus('R?qib axtarýlýr...');
+
+    const waitingRef = ref(db, 'matchmaking/chess/waiting');
+    const snap = await get(waitingRef);
+
+    if (snap.exists()) {
+      const opponentId = snap.val();
+      if (opponentId === user.uid) return;
+
+      await remove(waitingRef);
+      const newRoomRef = push(ref(db, 'games/chess'));
+      const newRoomId = newRoomRef.key;
+
+      await set(newRoomRef, {
+        white: opponentId,
+        black: user.uid,
+        fen: new Chess().fen(),
+        status: 'playing',
+        timestamp: serverTimestamp()
       });
 
-      return () => {
-        newSocket.disconnect();
-      };
-    } else {
-      if (socket) socket.disconnect();
-      setSocket(null);
-      setRoomId(null);
+      await set(ref(db, "users//currentMatch"), newRoomId);
+      
+      setRoomId(newRoomId);
+      setMyColor('b');
+      resetGame();
+      setStatus('Oyun Baþladý! Uðurlar.');
       setIsSearching(false);
-      setMyColor('w');
+    } else {
+      await set(waitingRef, user.uid);
+      onDisconnect(waitingRef).remove();
+
+      const matchRef = ref(db, "users//currentMatch");
+      onValue(matchRef, (snapMatch) => {
+        const foundRoomId = snapMatch.val();
+        if (foundRoomId) {
+          setRoomId(foundRoomId);
+          setMyColor('w');
+          resetGame();
+          setStatus('Oyun Baþladý! Uðurlar.');
+          setIsSearching(false);
+          remove(matchRef);
+        }
+      });
     }
-  }, [mode]);
+  };
 
   const makeMove = useCallback((move: {from: string, to: string, promotion?: string}) => {
     try {
@@ -145,7 +177,7 @@ export default function ChessArena() {
       return false;
     }
     return false;
-  }, [game, mode, difficulty, roomId, socket]);
+  }, [game, mode, difficulty, roomId, user]);
 
   const onDrop = (sourceSquare: string, targetSquare: string, piece: string) => {
     // Check if it's our turn in multiplayer
@@ -176,13 +208,7 @@ export default function ChessArena() {
     setStatus('Oyun BaÅŸladÄ±');
   };
 
-  const findMatch = () => {
-    if (socket) {
-      socket.emit('find_match');
-    }
-  };
-
-  return (
+return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8 relative z-10 pt-24">
       <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-white transition">
         <ArrowLeft className="w-4 h-4" />
@@ -342,4 +368,11 @@ export default function ChessArena() {
     </div>
   );
 }
+
+
+
+
+
+
+
 
