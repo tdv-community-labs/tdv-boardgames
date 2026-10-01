@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {   Gamepad2, Trophy, User, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
+import NotificationsPanel from '@/components/NotificationsPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';

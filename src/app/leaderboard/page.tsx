@@ -1,10 +1,12 @@
 'use client';
+import { toast } from 'react-hot-toast';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy } from 'lucide-react';
-import { db } from '@/lib/firebase';
-import { ref, onValue } from 'firebase/database';
+import { Trophy, UserPlus } from 'lucide-react';
+import { db, auth } from '@/lib/firebase';
+import { ref, onValue, get, push } from 'firebase/database';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { getRank } from '@/utils/ranks';
 import confetti from 'canvas-confetti';
 
@@ -23,6 +25,24 @@ interface Player {
 
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  useEffect(() => { const u = onAuthStateChanged(auth, setCurrentUser); return u; }, []);
+  
+  const sendFriendRequest = async (toUid: string, toName: string) => {
+    if (!currentUser || currentUser.uid === toUid) return;
+    const mySnap = await get(ref(db, `users/${currentUser.uid}`));
+    const me = mySnap.val();
+    await push(ref(db, `notifications/${toUid}`), {
+      type: 'friend_request',
+      fromUid: currentUser.uid,
+      fromName: me?.displayName || 'Oyunçu',
+      fromAvatar: me?.avatar || '😎',
+      timestamp: Date.now()
+    });
+    toast.success('Dost sorğusu göndərildi!');
+    setSelectedUser(null);
+  };
+  
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [rawUsers, setRawUsers] = useState<any>({});
   const [sortBy, setSortBy] = useState<'elo' | 'wins' | 'coins' | 'level'>('elo');
