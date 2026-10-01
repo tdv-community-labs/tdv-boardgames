@@ -49,6 +49,18 @@ const GAMES = [
     players: "12",
     badge: "Yeni"
   }
+,
+  {
+    id: "tictactoe",
+    name: "XOX",
+    icon: "❌",
+    description: "Klassik Tic-Tac-Toe. 3 eyni işarəni yan-yana düzün.",
+    color: "from-indigo-500/20 to-indigo-900/40",
+    borderColor: "border-indigo-500/30",
+    textColor: "text-indigo-400",
+    players: "300+",
+    badge: "Yeni"
+  }
 ];
 
 function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
