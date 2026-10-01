@@ -22,7 +22,15 @@ export default function ChessArena() {
   const [status, setStatus] = useState<string>('Oyun Başladı');
   const [engineWinner, setEngineWinner] = useState<string | null>(null);
   const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
-  const [difficulty, setDifficulty] = useState<number>(10); // 1-20
+  const [difficulty, setDifficulty] = useState<number>(10);
+  const [theme, setTheme] = useState<'classic' | 'wood' | 'ocean' | 'neon'>('classic');
+  
+  const themes = {
+    classic: { light: '#f0d9b5', dark: '#b58863' },
+    wood: { light: '#e6c8a0', dark: '#8b5a2b' },
+    ocean: { light: '#d1e6e6', dark: '#4682b4' },
+    neon: { light: '#2c003e', dark: '#ff007f' }
+  }; // 1-20
   
   // Multiplayer State
   
