@@ -9,7 +9,7 @@ import Link from 'next/link';
 import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
-import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect } from 'firebase/database';
+import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect, update } from 'firebase/database';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
@@ -19,6 +19,8 @@ export default function ChessArena() {
   const [game, setGame] = useState(() => { if (typeof window !== 'undefined') { const saved = localStorage.getItem('tdv-chess'); if (saved) return new Chess(saved); } return new Chess(); });
   useEffect(() => { localStorage.setItem('tdv-chess', game.fen()); }, [game.fen()]);
   const [moves, setMoves] = useState<Move[]>([]);
+  const [optionSquares, setOptionSquares] = useState<{ [square: string]: { background: string; borderRadius?: string } }>({});
+  const [moveFrom, setMoveFrom] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('Oyun Başladı');
   const [engineWinner, setEngineWinner] = useState<string | null>(null);
   const [isSpectator, setIsSpectator] = useState(false);
@@ -273,6 +275,70 @@ export default function ChessArena() {
       promotion: piece[1].toLowerCase() ?? 'q',
     });
     return move;
+  };
+
+  
+  const onSquareClick = (square: string) => {
+    if (isSpectator) return;
+    if (game.isGameOver() || engineWinner) return;
+    if (mode === 'multiplayer' && game.turn() !== myColor) return;
+    if (mode === 'bot' && game.turn() === 'b') return;
+
+    if (!moveFrom) {
+      const hasMoveOptions = getMoveOptions(square);
+      if (hasMoveOptions) setMoveFrom(square);
+      return;
+    }
+
+    const movesObj = game.moves({ square: moveFrom as any, verbose: true }) as Move[];
+    const foundMove = movesObj.find((m) => m.to === square);
+
+    if (!foundMove) {
+      const hasMoveOptions = getMoveOptions(square);
+      setMoveFrom(hasMoveOptions ? square : null);
+      return;
+    }
+
+    try {
+      const move = game.move({ from: moveFrom, to: square, promotion: 'q' });
+      if (move) {
+        setMoves(game.history({ verbose: true }) as Move[]);
+        updateStatus(game);
+        setOptionSquares({});
+        setMoveFrom(null);
+        playMoveSound();
+        if (move.captured) playCaptureSound();
+        setOptionSquares({});
+        setMoveFrom(null);
+        
+        if (mode === 'multiplayer' && roomId) {
+          update(ref(db, `games/chess/${roomId}`), { fen: game.fen() });
+        }
+      }
+    } catch (e) {
+      setMoveFrom(null);
+      setOptionSquares({});
+    }
+  };
+
+  const getMoveOptions = (square: string) => {
+    const movesObj = game.moves({ square: square as any, verbose: true }) as Move[];
+    if (movesObj.length === 0) {
+      setOptionSquares({});
+      return false;
+    }
+    const newSquares: any = {};
+    movesObj.forEach((m) => {
+      newSquares[m.to] = {
+        background: game.get(m.to as any) && game.get(m.to as any)?.color !== game.get(square as any)?.color
+          ? 'radial-gradient(circle, rgba(0,0,0,.3) 85%, transparent 85%)'
+          : 'radial-gradient(circle, rgba(0,0,0,.3) 25%, transparent 25%)',
+        borderRadius: '50%'
+      };
+    });
+    newSquares[square] = { background: 'rgba(255, 255, 0, 0.4)' };
+    setOptionSquares(newSquares);
+    return true;
   };
 
   const updateStatus = (g: Chess) => {
