@@ -541,14 +541,7 @@ export default function ChessArena() {
           className="w-full max-w-[100%] sm:max-w-[65vh] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-4 ring-zinc-800/50"
         >
           {/* @ts-ignore */}
-          <Chessboard 
-            position={game.fen()} 
-            onPieceDrop={onDrop}
-            boardOrientation={myColor === 'w' ? 'white' : 'black'}
-            customDarkSquareStyle={{ backgroundColor: '#27272a' }}
-            customLightSquareStyle={{ backgroundColor: '#e4e4e7' }}
-            animationDuration={200}
-          />
+          <Chessboard {...({} as any)} position={game.fen()} onPieceDrop={onDrop} onSquareClick={onSquareClick} boardOrientation={myColor === 'w' ? 'white' : 'black'} customDarkSquareStyle={{ backgroundColor: themes[theme]?.dark || '#27272a' }} customLightSquareStyle={{ backgroundColor: themes[theme]?.light || '#e4e4e7' }} customSquareStyles={optionSquares} animationDuration={200} />
         </motion.div>
 
         {/* My Info */}
@@ -664,6 +657,7 @@ export default function ChessArena() {
     </div>
   );
 }
+
 
 
 

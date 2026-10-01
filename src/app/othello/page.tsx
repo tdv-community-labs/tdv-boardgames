@@ -258,7 +258,7 @@ export default function OthelloArena() {
 
       <div className="w-full lg:w-80 flex flex-col gap-4">
         <div className="p-6 rounded-3xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md">
-          <h2 className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">Oyun Statusu</h2>
+          <h2 className="tdv-section-label mb-2">Oyun Statusu</h2>
           <div className="text-xl font-bold text-white mb-6">{status}</div>
           <div className="flex gap-2 mb-6">
             <button onClick={()=>{setMode('bot');resetGame()}} className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 ${mode==='bot'?'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20':'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>Bot</button>

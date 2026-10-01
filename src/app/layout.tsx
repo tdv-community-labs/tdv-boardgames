@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from 'react-hot-toast';
 import DailyQuests from '@/components/DailyQuests';
+import PageTransition from '@/components/PageTransition';
 
 export default function RootLayout({
   children,
@@ -33,7 +34,7 @@ export default function RootLayout({
         <DailyQuests />
 
         <main className="pt-24 min-h-screen">
-          {children}
+          <PageTransition>{children}</PageTransition>
         <Toaster position="top-center" toastOptions={{ style: { background: '#18181b', color: '#fff', border: '1px solid #27272a' } }} />
         </main>
       </body>

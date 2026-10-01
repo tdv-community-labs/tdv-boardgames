@@ -131,7 +131,7 @@ export default function FriendsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className={`relative p-4 rounded-2xl border flex items-center gap-4 ${BANNER_STYLES[friend.banner || 'default']}`}
+                className={`tdv-card relative p-4 flex items-center gap-4 transition-all hover:scale-[1.01] ${BANNER_STYLES[friend.banner || 'default']}`}
               >
                 {/* Avatar + online indicator */}
                 <div className="relative flex-shrink-0">
