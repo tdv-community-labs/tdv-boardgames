@@ -15,10 +15,15 @@ interface Player {
     avatar?: string;
   elo: number;
   winRate: string;
+  wins: number;
+  losses: number;
+  coins: number;
+  level: number;
 }
 
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [sortBy, setSortBy] = useState<'elo' | 'wins' | 'coins' | 'level'>('elo');
   const [loading, setLoading] = useState(true);
 
   
@@ -34,7 +39,7 @@ export default function LeaderboardPage() {
         });
       }, 500);
     }
-  }, []);
+  }, [sortBy]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -47,7 +52,7 @@ export default function LeaderboardPage() {
         });
       }, 500);
     }
-  }, []);
+  }, [sortBy]);
   
   useEffect(() => {
     const usersRef = ref(db, 'users');
@@ -65,7 +70,7 @@ export default function LeaderboardPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [sortBy]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
@@ -94,7 +99,24 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <>
-          {/* Top 3 Podium */}
+          
+        {/* Sorting Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8 relative z-10">
+          {(['elo', 'wins', 'coins', 'level'] as const).map(tab => (
+            <button 
+              key={tab} 
+              onClick={() => setSortBy(tab)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${sortBy === tab ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
+            >
+              {tab === 'elo' && '🏆 Reytinq'}
+              {tab === 'wins' && '⚔️ Qələbələr'}
+              {tab === 'coins' && '🪙 Zənginlər'}
+              {tab === 'level' && '📈 Səviyyə'}
+            </button>
+          ))}
+        </div>
+
+        {/* Top 3 Podium */}
           <div className="flex items-end justify-center gap-4 mb-12 h-48">
             {/* Rank 2 */}
             {players[1] && (
