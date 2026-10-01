@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Trophy, Users, Star, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import GlobalChat from '@/components/GlobalChat';
 
 const GAMES = [
   {
