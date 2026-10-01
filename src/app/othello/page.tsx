@@ -214,10 +214,11 @@ export default function OthelloArena() {
         <div className="w-full max-w-full sm:max-w-[80vh] aspect-square rounded-sm p-2 bg-[#16a34a] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-[12px] border-zinc-900">
           <div className="grid grid-cols-8 grid-rows-8 w-full h-full border border-[#14532d]">
             {board.map((row, r) => row.map((cell, c) => {
+              const isLastMove = engine.lastMove && engine.lastMove.to.r === r && engine.lastMove.to.c === c;
               const isMove = validMoves.some(m => m.r === r && m.c === c);
               const highlightTurn = mode === 'bot' && engine.turn === 'w' ? false : (mode === 'multiplayer' && engine.turn !== myColor ? false : true);
               return (
-                <div key={`${r}-${c}`} onClick={() => handleCellClick(r, c)} className="w-full h-full border border-[#15803d] flex items-center justify-center relative cursor-pointer">
+                <div key={`${r}-${c}`} onClick={() => handleCellClick(r, c)} className={`w-full h-full border border-[#15803d] flex items-center justify-center relative cursor-pointer ${isLastMove ? 'bg-yellow-400/30' : ''}`}>
                   {isMove && highlightTurn && <div className="absolute w-4 h-4 rounded-full bg-black/40 border border-black/50 animate-pulse z-0" />}
                   <AnimatePresence>
                     {cell && (

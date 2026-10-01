@@ -11,6 +11,7 @@ export class OthelloEngine {
   board: BoardState;
   turn: Player;
   winner: Player | 'draw' | null;
+  lastMove: any = null;
 
   constructor() {
     this.board = Array(8).fill(null).map(() => Array(8).fill(null));
@@ -23,7 +24,7 @@ export class OthelloEngine {
   }
 
   serialize(): string {
-    return JSON.stringify({ board: this.board, turn: this.turn, winner: this.winner });
+    return JSON.stringify({ board: this.board, turn: this.turn, winner: this.winner, lastMove: this.lastMove });
   }
 
   load(dataStr: string) {
@@ -32,6 +33,7 @@ export class OthelloEngine {
       this.board = data.board;
       this.turn = data.turn;
       this.winner = data.winner;
+      if(data.lastMove) this.lastMove = data.lastMove;
     } catch(e) {}
   }
 
@@ -73,6 +75,7 @@ export class OthelloEngine {
     if (!m) return false;
 
     this.board[r][c] = this.turn;
+    this.lastMove = { to: {r, c} };
     m.flips.forEach(f => this.board[f.r][f.c] = this.turn);
 
     // Swap turn

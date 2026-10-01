@@ -304,7 +304,9 @@ export default function CheckersArena() {
               row.map((cell, cIndex) => {
                 const isDark = (rIndex + cIndex) % 2 === 1;
                 const isSelected = selectedCell?.r === rIndex && selectedCell?.c === cIndex;
-                const isPossibleMove = validMoves.some(m => m.toRow === rIndex && m.toCol === cIndex);
+                const isLastMoveFrom = engine.lastMove && engine.lastMove.from.r === rIndex && engine.lastMove.from.c === cIndex;
+              const isLastMoveTo = engine.lastMove && engine.lastMove.to.r === rIndex && engine.lastMove.to.c === cIndex;
+              const isPossibleMove = validMoves.some(m => m.toRow === rIndex && m.toCol === cIndex);
 
                 return (
                   <div 

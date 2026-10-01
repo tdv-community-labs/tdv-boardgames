@@ -13,6 +13,7 @@ export class CheckersEngine {
   board: BoardState;
   turn: 'w' | 'b';
   winner: 'w' | 'b' | 'draw' | null;
+  lastMove: any = null;
 
   multiJumpPiece: {r: number, c: number} | null = null;
   private nextId = 1;
@@ -42,6 +43,7 @@ export class CheckersEngine {
       this.board = data.board;
       this.turn = data.turn;
       this.winner = data.winner;
+      if(data.lastMove) this.lastMove = data.lastMove;
       this.multiJumpPiece = data.multiJumpPiece;
       this.moveHistory = data.moveHistory;
     } catch(e) {}

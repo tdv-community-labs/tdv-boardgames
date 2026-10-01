@@ -7,7 +7,7 @@ export class GoEngine {
   size: number;
   lastMove: {r: number, c: number} | null;
   winner: 'w' | 'b' | 'draw' | null = null;
-  moveHistory: string[] = [];
+    moveHistory: string[] = [];
   captures: { b: number, w: number } = { b: 0, w: 0 };
 
   constructor(size = 19) {
@@ -189,3 +189,4 @@ export class GoEngine {
     return score;
   }
 }
+
