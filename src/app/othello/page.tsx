@@ -177,18 +177,20 @@ export default function OthelloArena() {
     updateStatus();
     
     // AI Bot Logic
+    let timeoutId: any;
     if (mode === 'bot' && engine.turn === 'w' && !engine.winner) {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         const bestMove = engine.getBestMove();
         if (bestMove) {
           engine.move(bestMove.r, bestMove.c);
           setBoard([...engine.board.map(r => [...r])]);
           updateStatus();
-          playCaptureSound(); // Othello always captures
+          playCaptureSound();
         }
       }, 800);
     }
-  }, [board, engine.turn]);
+    return () => { if (timeoutId) clearTimeout(timeoutId); };
+  }, [board, engine.turn, mode, engine.winner]);
 
   const updateStatus = () => {
     if (engine.winner) {
@@ -265,7 +267,7 @@ export default function OthelloArena() {
                   >
                     {/* Possible move dot */}
                     {isPossibleMove && (
-                      <div className="absolute w-3 h-3 rounded-full bg-black/30 z-0" />
+                      <div className="absolute w-3 h-3 rounded-full bg-black/40 border border-black/50 animate-pulse z-0" />
                     )}
                     
                     {/* Piece */}
@@ -385,6 +387,8 @@ export default function OthelloArena() {
     </div>
   );
 }
+
+
 
 
 
