@@ -23,6 +23,10 @@ export default function ChessArena() {
   const [optionSquares, setOptionSquares] = useState<{ [square: string]: { background: string; borderRadius?: string } }>({});
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
   const [incomingDraw, setIncomingDraw] = useState(false);
+  const [timeControl, setTimeControl] = useState<number>(300); // seconds
+  const [whiteTime, setWhiteTime] = useState<number>(300);
+  const [blackTime, setBlackTime] = useState<number>(300);
+  const [clockRunning, setClockRunning] = useState(false);
   const [drawOfferedByMe, setDrawOfferedByMe] = useState(false);
   const [status, setStatus] = useState<string>('Oyun Başladı');
   const [engineWinner, setEngineWinner] = useState<string | null>(null);
@@ -308,7 +312,10 @@ export default function ChessArena() {
         setMoves(game.history({ verbose: true }) as Move[]);
         updateStatus(game);
         setOptionSquares({});
-        setMoveFrom(null);
+    setMoveFrom(null);
+    setWhiteTime(timeControl);
+    setBlackTime(timeControl);
+    setClockRunning(false);
         playMoveSound();
         if (move.captured) playCaptureSound();
         setOptionSquares({});
@@ -395,6 +402,18 @@ export default function ChessArena() {
     } catch(e) {}
   };
   
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+  
+  const startClock = () => {
+    setWhiteTime(timeControl);
+    setBlackTime(timeControl);
+    setClockRunning(true);
+  };
+
   const resetGame = () => {
     const newGame = new Chess();
     setGame(newGame);
@@ -554,6 +573,44 @@ export default function ChessArena() {
       <div className="w-full lg:w-80 flex flex-col gap-4">
         {/* Status Card */}
         <div className="p-6 rounded-3xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md">
+          
+          {/* Chess Clock */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className={`relative p-4 rounded-2xl border-2 text-center transition-all ${game.turn() === 'b' && clockRunning ? 'border-emerald-500 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-zinc-800 bg-zinc-950'}`}>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">
+                {mode === 'multiplayer' ? (myColor === 'b' ? 'Siz' : 'Rəqib') : 'Bot'}
+              </div>
+              <div className={`text-3xl font-mono font-black ${blackTime < 30 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                {formatTime(blackTime)}
+              </div>
+              <div className="text-xl mt-1">⚫</div>
+            </div>
+            <div className={`relative p-4 rounded-2xl border-2 text-center transition-all ${game.turn() === 'w' && clockRunning ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.2)]' : 'border-zinc-800 bg-zinc-950'}`}>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">
+                {mode === 'multiplayer' ? (myColor === 'w' ? 'Siz' : 'Rəqib') : 'Siz'}
+              </div>
+              <div className={`text-3xl font-mono font-black ${whiteTime < 30 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                {formatTime(whiteTime)}
+              </div>
+              <div className="text-xl mt-1">⚪</div>
+            </div>
+          </div>
+
+          {/* Time Control Selector */}
+          {!clockRunning && (
+            <div className="mb-4">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Vaxt Nəzarəti</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[{label:'1 dəq', secs:60},{label:'3 dəq', secs:180},{label:'5 dəq', secs:300},{label:'10 dəq', secs:600}].map(tc => (
+                  <button key={tc.secs} onClick={() => { setTimeControl(tc.secs); setWhiteTime(tc.secs); setBlackTime(tc.secs); }}
+                    className={`py-1.5 rounded-lg text-xs font-black transition-all ${timeControl === tc.secs ? 'bg-blue-600 text-white' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'}`}>
+                    {tc.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+  
           <h2 className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">Oyun Statusu</h2>
           <div className="text-xl font-bold text-white mb-4">{status}</div>
           
