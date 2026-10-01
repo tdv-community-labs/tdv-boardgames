@@ -131,9 +131,9 @@ export default function ChessArena() {
         
         if (mode === 'bot' && !newGame.isGameOver()) {
           if (engine.current) {
-            engine.current.postMessage(\`position fen \${newGame.fen()}\`);
-            engine.current.postMessage(\`setoption name Skill Level value \${difficulty}\`);
-            engine.current.postMessage(\`go depth 15\`);
+            engine.current.postMessage(`position fen ${newGame.fen()}`);
+            engine.current.postMessage(`setoption name Skill Level value ${difficulty}`);
+            engine.current.postMessage(`go depth 15`);
           }
         } else if (mode === 'multiplayer' && roomId && socket) {
           socket.emit('make_move', { roomId, move });
@@ -165,7 +165,7 @@ export default function ChessArena() {
     else if (g.isDraw()) setStatus('Heç-heçə!');
     else if (g.isStalemate()) setStatus('Pat! Heç-heçə.');
     else if (g.isCheck()) setStatus('ŞAH!');
-    else setStatus(\`Gediş sırası: \${g.turn() === 'w' ? 'Ağlar' : 'Qaralar'}\`);
+    else setStatus(`Gediş sırası: ${g.turn() === 'w' ? 'Ağlar' : 'Qaralar'}`);
   };
 
   const resetGame = () => {
@@ -208,13 +208,13 @@ export default function ChessArena() {
         <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 mb-6">
           <button 
             onClick={() => { setMode('bot'); resetGame(); }}
-            className={\`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'bot' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}\`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'bot' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
             <Cpu className="w-4 h-4" /> Stockfish AI (Bot)
           </button>
           <button 
             onClick={() => { setMode('multiplayer'); resetGame(); }}
-            className={\`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}\`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition \${mode === 'multiplayer' ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
             <Users className="w-4 h-4" /> Canlı (Multiplayer)
           </button>
@@ -255,6 +255,7 @@ export default function ChessArena() {
           animate={{ scale: 1, opacity: 1 }}
           className="w-full max-w-[600px] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-4 ring-zinc-800/50"
         >
+          {/* @ts-ignore */}
           <Chessboard 
             position={game.fen()} 
             onPieceDrop={onDrop}

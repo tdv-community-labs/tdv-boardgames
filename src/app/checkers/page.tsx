@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Shield, Flag, ArrowLeft, Users, Cpu } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
@@ -42,7 +42,7 @@ export default function CheckersArena() {
     if (engine.winner) {
       setStatus(engine.winner === 'w' ? 'Siz Qalib Gəldiniz!' : 'Bot Qalib Gəldi!');
     } else {
-      setStatus(\`Gediş sırası: \${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}\`);
+      setStatus(`Gediş sırası: ${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
     }
   };
 
@@ -127,9 +127,9 @@ export default function CheckersArena() {
 
                 return (
                   <div 
-                    key={\`\${rIndex}-\${cIndex}\`} 
+                    key={`${rIndex}-${cIndex}`} 
                     onClick={() => handleCellClick(rIndex, cIndex)}
-                    className={\`w-full h-full flex items-center justify-center relative cursor-pointer \${isDark ? 'bg-[#27272a]' : 'bg-[#e4e4e7]'}\`}
+                    className={`w-full h-full flex items-center justify-center relative cursor-pointer ${isDark ? 'bg-[#27272a]' : 'bg-[#e4e4e7]'}`}
                   >
                     {/* Possible move dot */}
                     {isPossibleMove && (
@@ -141,11 +141,11 @@ export default function CheckersArena() {
                       <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className={\`z-10 w-[80%] h-[80%] rounded-full shadow-inner flex items-center justify-center border-4 \${
+                        className={`z-10 w-[80%] h-[80%] rounded-full shadow-inner flex items-center justify-center border-4 ${
                           cell.toLowerCase() === 'w' ? 'bg-zinc-200 border-white' : 'bg-zinc-800 border-zinc-950'
-                        } \${isSelected ? 'ring-4 ring-red-500 ring-offset-2 ring-offset-transparent' : ''}\`}
+                        } ${isSelected ? 'ring-4 ring-red-500 ring-offset-2 ring-offset-transparent' : ''}`}
                       >
-                        <div className={\`w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center font-black \${cell.toLowerCase() === 'w' ? 'border-zinc-300 text-zinc-400' : 'border-zinc-700 text-zinc-500'}\`}>
+                        <div className={`w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center font-black ${cell.toLowerCase() === 'w' ? 'border-zinc-300 text-zinc-400' : 'border-zinc-700 text-zinc-500'}`}>
                           {cell === 'W' || cell === 'B' ? 'K' : ''}
                         </div>
                       </motion.div>

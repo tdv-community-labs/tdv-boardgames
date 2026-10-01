@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Shield, Flag, ArrowLeft, Users, Cpu } from 'lucide-react';
+import { Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { GoEngine, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
@@ -39,7 +39,7 @@ export default function GoArena() {
   }, [engine.turn]);
 
   const updateStatus = () => {
-    setStatus(\`Gediş sırası: \${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}\`);
+    setStatus(`Gediş sırası: ${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
   };
 
   const handleCellClick = (r: number, c: number) => {
@@ -92,7 +92,7 @@ export default function GoArena() {
 
         {/* Custom Go Board */}
         <div className="w-full max-w-[600px] aspect-square rounded-lg p-4 shadow-[0_0_50px_rgba(34,197,94,0.15)] ring-4 ring-zinc-800/50 bg-[#dcba82]">
-          <div className="grid w-full h-full border border-zinc-800 relative" style={{ gridTemplateColumns: \`repeat(\${BOARD_SIZE - 1}, minmax(0, 1fr))\`, gridTemplateRows: \`repeat(\${BOARD_SIZE - 1}, minmax(0, 1fr))\` }}>
+          <div className="grid w-full h-full border border-zinc-800 relative" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE - 1}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${BOARD_SIZE - 1}, minmax(0, 1fr))` }}>
             
             {/* The Grid Lines */}
             {Array((BOARD_SIZE - 1) * (BOARD_SIZE - 1)).fill(null).map((_, i) => (
@@ -100,12 +100,12 @@ export default function GoArena() {
             ))}
 
             {/* The Intersections Overlay */}
-            <div className="absolute top-0 left-0 w-[calc(100%+100%/(18))] h-[calc(100%+100%/(18))] grid -translate-x-[calc(50%/(18))] -translate-y-[calc(50%/(18))]" style={{ gridTemplateColumns: \`repeat(\${BOARD_SIZE}, minmax(0, 1fr))\`, gridTemplateRows: \`repeat(\${BOARD_SIZE}, minmax(0, 1fr))\` }}>
+            <div className="absolute top-0 left-0 w-[calc(100%+100%/(18))] h-[calc(100%+100%/(18))] grid -translate-x-[calc(50%/(18))] -translate-y-[calc(50%/(18))]" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${BOARD_SIZE}, minmax(0, 1fr))` }}>
               {board.map((row, rIndex) => (
                 row.map((cell, cIndex) => {
                   return (
                     <div 
-                      key={\`\${rIndex}-\${cIndex}\`} 
+                      key={`${rIndex}-${cIndex}`} 
                       onClick={() => handleCellClick(rIndex, cIndex)}
                       className="w-full h-full flex items-center justify-center cursor-pointer group"
                     >
@@ -119,9 +119,9 @@ export default function GoArena() {
                         <motion.div 
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className={\`w-[90%] h-[90%] rounded-full shadow-md \${
+                          className={`w-[90%] h-[90%] rounded-full shadow-md ${
                             cell === 'w' ? 'bg-zinc-100' : 'bg-zinc-950 shadow-black/50 border border-white/10'
-                          }\`} 
+                          }`} 
                         />
                       )}
                     </div>

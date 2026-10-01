@@ -26,7 +26,7 @@ app.prepare().then(() => {
     socket.on('find_match', (data) => {
       if (waitingPlayer && waitingPlayer.id !== socket.id) {
         // Match found
-        const roomId = \`room_\${waitingPlayer.id}_\${socket.id}\`;
+        const roomId = `room_\${waitingPlayer.id}_\${socket.id}`;
         
         socket.join(roomId);
         waitingPlayer.join(roomId);
@@ -61,6 +61,6 @@ app.prepare().then(() => {
 
   const port = process.env.PORT || 3000;
   server.listen(port, () => {
-    console.log(\`> Ready on http://localhost:\${port} with WebSockets\`);
+    console.log(`> Ready on http://localhost:\${port} with WebSockets`);
   });
 });

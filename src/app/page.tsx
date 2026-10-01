@@ -77,7 +77,7 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
   };
 
   return (
-    <Link href={game.id === 'othello' ? '#' : \`/\${game.id}\`} passHref legacyBehavior>
+    <Link href={game.id === 'othello' ? '#' : `/${game.id}`} passHref legacyBehavior>
       <motion.a
         ref={ref}
         onMouseMove={handleMouseMove}
@@ -91,7 +91,7 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
         <motion.div
           animate={{ rotateX, rotateY }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className={\`group relative p-8 rounded-3xl border bg-gradient-to-br \${game.color} \${game.borderColor} overflow-hidden cursor-pointer h-full\`}
+          className={`group relative p-8 rounded-3xl border bg-gradient-to-br \${game.color} \${game.borderColor} overflow-hidden cursor-pointer h-full`}
         >
           {/* Hover glow effect */}
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
@@ -99,11 +99,11 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div>
               <div className="flex items-center justify-between mb-6">
-                <div className={\`w-14 h-14 rounded-2xl bg-zinc-950/50 backdrop-blur border \${game.borderColor} flex items-center justify-center text-3xl shadow-xl\`}>
+                <div className={`w-14 h-14 rounded-2xl bg-zinc-950/50 backdrop-blur border \${game.borderColor} flex items-center justify-center text-3xl shadow-xl`}>
                   {game.icon}
                 </div>
                 {game.badge && (
-                  <span className={\`px-3 py-1 rounded-full bg-zinc-950/50 backdrop-blur border \${game.borderColor} \${game.textColor} text-[10px] font-black uppercase tracking-widest\`}>
+                  <span className={`px-3 py-1 rounded-full bg-zinc-950/50 backdrop-blur border \${game.borderColor} \${game.textColor} text-[10px] font-black uppercase tracking-widest`}>
                     {game.badge}
                   </span>
                 )}
@@ -119,7 +119,7 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
                 <Users className="w-4 h-4" />
                 <span>{game.players} Oyunçu onlayndır</span>
               </div>
-              <div className={\`w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors\`}>
+              <div className={`w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors`}>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </div>
