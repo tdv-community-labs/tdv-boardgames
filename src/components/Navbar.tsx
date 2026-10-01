@@ -14,6 +14,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [elo, setElo] = useState<number>(1200);
+  const [level, setLevel] = useState<number>(1);
   const [avatar, setAvatar] = useState<string>('😎');
   const [onlineCount, setOnlineCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -72,6 +73,8 @@ export function Navbar() {
             if (snap.exists()) {
               setElo(snap.val().elo || 1200);
               if (snap.val().avatar) setAvatar(snap.val().avatar);
+              const totalMatches = (snap.val().wins || 0) + (snap.val().losses || 0);
+              setLevel(Math.floor(Math.sqrt(totalMatches)) + 1);
             }
           });
         }
