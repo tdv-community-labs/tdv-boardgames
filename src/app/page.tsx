@@ -188,6 +188,94 @@ export default function Home() {
         ))}
       </div>
 
+
+      {/* Live Tournament Board */}
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mt-16 w-full bg-zinc-900/50 border border-purple-500/20 rounded-[2rem] p-8 backdrop-blur-xl relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
+          
+          <div className="flex-1 w-full">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-black text-white flex items-center gap-3">
+                <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]"></span>
+                CANLI TURNİR <span className="text-purple-400">#TDV26</span>
+              </h2>
+              <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full text-xs font-bold text-purple-400">
+                128 İŞTİRAKÇI
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { name: "Ali R.", game: "Şahmat", status: "Mat", time: "2 dəq əvvəl", color: "emerald" },
+                { name: "Zaur K.", game: "Dama", status: "Kritik gediş", time: "İndi", color: "blue" },
+                { name: "Nigar M.", game: "Connect4", status: "Qələbə", time: "5 dəq əvvəl", color: "red" },
+              ].map((m, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-zinc-800 hover:border-zinc-700 transition cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl bg-${m.color}-500/20 border border-${m.color}-500/50 flex items-center justify-center text-xl`}>
+                      {m.game === 'Şahmat' ? '♚' : m.game === 'Dama' ? '⛃' : '🔴'}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">{m.name} <span className="text-zinc-500 font-normal">oynayır</span> {m.game}</h4>
+                      <p className={`text-xs font-semibold text-${m.color}-400`}>{m.status}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-zinc-600 font-mono">{m.time}</span>
+                </div>
+              ))}
+            </div>
+            
+            <button className="w-full mt-6 py-4 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 font-bold border border-purple-500/30 transition shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+              MÜBARİZƏYƏ QOŞUL
+            </button>
+          </div>
+
+          <div className="flex-1 w-full flex flex-col items-center justify-center bg-black/30 rounded-[2rem] border border-zinc-800 p-6 min-h-[350px]">
+            <h3 className="text-sm font-bold text-zinc-400 mb-6 uppercase tracking-widest text-center">Birlik Aktivliyi (Radar)</h3>
+            <div className="relative w-64 h-64">
+              {/* Simple CSS Radar Chart using SVG */}
+              <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                {/* Grid Lines */}
+                <polygon points="50,10 90,38 75,85 25,85 10,38" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+                <polygon points="50,25 80,45 68,75 32,75 20,45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+                <polygon points="50,40 70,53 60,65 40,65 30,53" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+                
+                {/* Axis */}
+                <line x1="50" y1="50" x2="50" y2="10" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="90" y2="38" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="75" y2="85" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="25" y2="85" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="10" y2="38" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
+                
+                {/* Data Polygon */}
+                <polygon points="50,20 85,40 60,80 35,70 15,45" fill="rgba(168, 85, 247, 0.4)" stroke="#a855f7" strokeWidth="1.5" />
+                
+                {/* Points */}
+                <circle cx="50" cy="20" r="2" fill="#fff" />
+                <circle cx="85" cy="40" r="2" fill="#fff" />
+                <circle cx="60" cy="80" r="2" fill="#fff" />
+                <circle cx="35" cy="70" r="2" fill="#fff" />
+                <circle cx="15" cy="45" r="2" fill="#fff" />
+                
+                {/* Labels */}
+                <text x="50" y="5" fill="#a1a1aa" fontSize="4" textAnchor="middle" fontWeight="bold">Şahmat</text>
+                <text x="95" y="38" fill="#a1a1aa" fontSize="4" textAnchor="start" fontWeight="bold">Dama</text>
+                <text x="80" y="90" fill="#a1a1aa" fontSize="4" textAnchor="start" fontWeight="bold">C4</text>
+                <text x="20" y="90" fill="#a1a1aa" fontSize="4" textAnchor="end" fontWeight="bold">Qo</text>
+                <text x="5" y="38" fill="#a1a1aa" fontSize="4" textAnchor="end" fontWeight="bold">Othello</text>
+              </svg>
+            </div>
+          </div>
+          
+        </div>
+      </motion.div>
+
     </div>
   );
 }
