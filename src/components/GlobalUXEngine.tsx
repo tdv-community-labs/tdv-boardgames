@@ -259,12 +259,14 @@ export default function GlobalUXEngine() {
     <div>
       <style>{`
         @keyframes tdvRippleAnim { to { transform: scale(4); opacity: 0; } }
-        .tdv-glitch-text { position: relative; display: inline-block; }
-        .tdv-glitch-text::before, .tdv-glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8; pointer-events: none; }
-        .tdv-glitch-text::before { left: 2px; text-shadow: -2px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: tdvGlitchAnim 5s infinite linear alternate-reverse; }
-        .tdv-glitch-text::after { left: -2px; text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1; animation: tdvGlitchAnim2 5s infinite linear alternate-reverse; }
-        @keyframes tdvGlitchAnim { 0% { clip: rect(10px, 9999px, 83px, 0); } 20% { clip: rect(48px, 9999px, 25px, 0); } 100% { clip: rect(1px, 9999px, 100px, 0); } }
-        @keyframes tdvGlitchAnim2 { 0% { clip: rect(65px, 9999px, 100px, 0); } 20% { clip: rect(38px, 9999px, 85px, 0); } 100% { clip: rect(51px, 9999px, 30px, 0); } }
+        .tdv-glitch-text { 
+          text-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 20px rgba(168, 85, 247, 0.2);
+          animation: tdvNeonPulse 3s infinite alternate ease-in-out;
+        }
+        @keyframes tdvNeonPulse {
+          0% { text-shadow: 0 0 5px rgba(168, 85, 247, 0.2), 0 0 10px rgba(168, 85, 247, 0.1); }
+          100% { text-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4), 0 0 30px rgba(168, 85, 247, 0.2); }
+        }
         
         #tdv-mouse-glow {
           position: fixed;
