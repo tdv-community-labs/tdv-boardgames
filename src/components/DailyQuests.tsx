@@ -31,6 +31,8 @@ export default function DailyQuests() {
   const [open, setOpen] = useState(false);
   const [questData, setQuestData] = useState<any>({});
   const [streak, setStreak] = useState(0);
+  const [activeChest, setActiveChest] = useState<Quest | null>(null);
+  const [chestOpening, setChestOpening] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => { if (u) setUid(u.uid); });
@@ -56,21 +58,60 @@ export default function DailyQuests() {
     });
   }, [uid]);
 
-  const claimReward = async (quest: Quest) => {
+  const triggerChest = (quest: Quest) => {
     if (!uid) return;
-    const snap = await get(ref(db, `users/${uid}`));
-    const data = snap.val() || {};
-    const current = data.dailyQuests?.[quest.id];
-    if (!current || current.claimed || current.progress < quest.target) return;
+    setOpen(false);
+    setActiveChest(quest);
+  };
 
-    const newBonus = (data.bonusCoins || 0) + quest.reward;
-    await update(ref(db, `users/${uid}`), {
-      bonusCoins: newBonus,
-      [`dailyQuests/${quest.id}/claimed`]: true
-    });
-    setQuestData((prev: any) => ({ ...prev, [quest.id]: { ...prev[quest.id], claimed: true } }));
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-    toast.success(`+${quest.reward} 🪙 qazandınız!`);
+  const executeClaim = async () => {
+    if (!uid || !activeChest) return;
+    setChestOpening(true);
+    
+    // Play big confetti
+    const duration = 2000;
+    const end = Date.now() + duration;
+    (function frame() {
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#a855f7', '#fbbf24', '#ef4444'] });
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#a855f7', '#fbbf24', '#ef4444'] });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    }());
+
+    // Audio
+    const actx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (actx) {
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(100, actx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, actx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0, actx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.5, actx.currentTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 1);
+      osc.connect(gain); gain.connect(actx.destination);
+      osc.start(); osc.stop(actx.currentTime + 1);
+    }
+
+    // Wait for animation
+    setTimeout(async () => {
+      const quest = activeChest;
+      const snap = await get(ref(db, `users/${uid}`));
+      const data = snap.val() || {};
+      const newBonus = (data.bonusCoins || 0) + quest.reward;
+      
+      await update(ref(db, `users/${uid}`), {
+        bonusCoins: newBonus,
+        [`dailyQuests/${quest.id}/claimed`]: true
+      });
+      setQuestData((prev: any) => ({ ...prev, [quest.id]: { ...prev[quest.id], claimed: true } }));
+      
+      toast.success(`+${quest.reward} TDV qazandınız!`, { style: { background: '#fbbf24', color: '#000', fontWeight: 'bold' }});
+      
+      setTimeout(() => {
+        setActiveChest(null);
+        setChestOpening(false);
+      }, 1000);
+    }, 1500);
   };
 
   if (!uid) return null;
@@ -153,7 +194,7 @@ export default function DailyQuests() {
                             <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-1 ml-auto" />
                           ) : completed ? (
                             <button
-                              onClick={() => claimReward(quest)}
+                              onClick={() => triggerChest(quest)}
                               className="mt-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-lg transition-all active:scale-95"
                             >
                               Al!
@@ -183,7 +224,80 @@ export default function DailyQuests() {
             </motion.div>
           </div>
         )}
+
+      {/* CHEST MODAL */}
+      <AnimatePresence>
+        {activeChest && (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            
+            <motion.div
+              initial={{ scale: 0.5, y: 100, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              className="relative z-10 flex flex-col items-center justify-center"
+            >
+              {!chestOpening && (
+                <div className="absolute -top-20 text-center w-full animate-bounce">
+                  <h3 className="text-2xl font-black text-amber-400 drop-shadow-[0_0_10px_#fbbf24]">TƏBRİKLƏR!</h3>
+                  <p className="text-white text-sm">Günün tapşırığını tamamladın</p>
+                </div>
+              )}
+
+              {/* The Chest Box */}
+              <motion.button
+                onClick={!chestOpening ? executeClaim : undefined}
+                animate={chestOpening ? { 
+                  scale: [1, 1.2, 0.8, 1.5, 0],
+                  rotate: [0, -10, 10, -15, 15, 0],
+                  filter: ['brightness(1)', 'brightness(2)', 'brightness(1)']
+                } : {
+                  y: [0, -10, 0]
+                }}
+                transition={chestOpening ? { duration: 1.5, ease: "easeInOut" } : { duration: 2, repeat: Infinity }}
+                className={`relative group ${chestOpening ? 'pointer-events-none' : 'cursor-pointer'}`}
+              >
+                {/* Glow behind chest */}
+                <div className="absolute inset-0 bg-amber-500/50 rounded-full blur-[50px] group-hover:bg-amber-400/80 transition-all duration-500"></div>
+                
+                {/* Visual Chest Box */}
+                <div className="w-48 h-48 sm:w-64 sm:h-64 relative z-10 drop-shadow-[0_20px_50px_rgba(251,191,36,0.5)] flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-b from-amber-300 to-amber-700 rounded-2xl border-4 border-amber-200 shadow-inner overflow-hidden">
+                    {/* Metal bands */}
+                    <div className="absolute top-0 bottom-0 left-4 w-4 bg-zinc-800 border-x border-zinc-900 shadow-xl"></div>
+                    <div className="absolute top-0 bottom-0 right-4 w-4 bg-zinc-800 border-x border-zinc-900 shadow-xl"></div>
+                    {/* Lock */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-16 bg-zinc-200 border-2 border-zinc-400 rounded-lg shadow-2xl flex items-center justify-center">
+                      <div className="w-4 h-6 bg-zinc-800 rounded-full"></div>
+                    </div>
+                  </div>
+                  {/* Neon sign on chest */}
+                  <div className="absolute -bottom-6 w-full text-center text-amber-200 font-black tracking-widest text-xl drop-shadow-[0_0_10px_#fbbf24] animate-pulse">
+                    AÇMAQ ÜÇÜN KLİKLƏ
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Exploded Reward text */}
+              {chestOpening && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0, y: 50 }}
+                  animate={{ opacity: 1, scale: 1, y: -100 }}
+                  transition={{ delay: 1, type: "spring" }}
+                  className="absolute text-6xl md:text-8xl font-black text-amber-400 drop-shadow-[0_0_30px_#fbbf24] whitespace-nowrap z-50 pointer-events-none"
+                >
+                  +{activeChest.reward} TDV
+                </motion.div>
+              )}
+
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
+
     </>
   );
 }
