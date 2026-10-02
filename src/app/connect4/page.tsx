@@ -13,6 +13,9 @@ import { ref, get, set, update, remove, onValue, push, onDisconnect } from 'fire
 import { onAuthStateChanged, User } from 'firebase/auth';
 import GameChat from '@/components/GameChat';
 import EndGameModal from '@/components/EndGameModal';
+import VsScreen from '@/components/VsScreen';
+import { uiAudio } from '@/utils/sfx';
+
 import { playMoveSound } from '@/utils/sounds';
 
 export default function Connect4Arena() {
@@ -232,22 +235,112 @@ export default function Connect4Arena() {
         <ArrowRight className="w-4 h-4 rotate-180" /> Geri Qayıt
       </Link>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full">
-        <div className="bg-blue-900 rounded-3xl p-4 md:p-8 shadow-2xl relative">
-          <div className="grid grid-cols-7 gap-2 md:gap-4 w-full aspect-[7/6]">
+            {/* Epic Match Intro Screen */}
+      <VsScreen 
+        show={showVs} 
+        player1Name={myColor === 'r' ? user?.displayName || 'Siz' : opponentName}
+        player2Name={myColor === 'y' ? user?.displayName || 'Siz' : opponentName}
+        player1Avatar="😎"
+        player2Avatar="🤖"
+        onComplete={() => setShowVs(false)}
+      />
+
+      <div className="flex-1 max-w-3xl mx-auto w-full relative z-10 flex flex-col items-center">
+        
+        {/* Opponent Info (Cyberpunk) */}
+        <div className="w-full flex items-center justify-between mb-4 bg-zinc-950/80 p-4 rounded-2xl border-2 border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.15)] backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-yellow-950 border border-yellow-500/50 flex items-center justify-center text-2xl shadow-inner shadow-yellow-500/20">🤖</div>
+            <div>
+              <div className="font-black text-yellow-400 flex items-center gap-2 tracking-widest uppercase">
+                {mode==='multiplayer'?(myColor==='y'?user?.displayName||'Siz':opponentName):'SYS.BOT'}
+                <span className="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-[10px] text-yellow-300 animate-pulse">{mode==='multiplayer'?opponentElo:'LVL.MAX'}</span>
+              </div>
+              <div className="text-[10px] font-mono text-zinc-500 mt-1">SÜNİ İNTELLEKT - SARI KÜRLƏR</div>
+            </div>
+          </div>
+          <div className="text-xl px-4 font-black">🟡</div>
+        </div>
+
+        <div className="bg-zinc-950/90 rounded-3xl p-4 md:p-8 shadow-[0_0_50px_rgba(59,130,246,0.2)] border-[8px] border-blue-900/60 relative backdrop-blur-3xl overflow-hidden w-full">
+          {/* Holographic Underglow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.3),transparent_70%)] pointer-events-none"></div>
+
+          {/* Searching Overlay */}
+          <AnimatePresence>
+            {isSearching && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-md rounded-xl overflow-hidden"
+              >
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                  <div className="w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.4),transparent_60%)] animate-pulse" />
+                </div>
+                
+                <div className="relative w-32 h-32 mb-6">
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-500/10 border-t-blue-500 border-l-blue-500 animate-[spin_2s_linear_infinite]" />
+                  <div className="absolute inset-2 rounded-full border-2 border-red-500/20 border-b-red-500 border-r-red-500 animate-[spin_3s_linear_infinite_reverse]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-blue-400 rounded-full shadow-[0_0_15px_#3b82f6] animate-ping" />
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 tracking-widest uppercase mb-2">
+                  Rəqib Axtarılır
+                </h2>
+                <div className="flex items-center gap-1.5 mb-6 text-blue-500/70 text-[10px] font-mono tracking-widest">
+                  <span>SYS.SCAN</span>
+                  <span className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
+
+                <button 
+                  onClick={() => { setIsSearching(false); setStatus('Oyun başlayır...'); uiAudio.click(); }} 
+                  className="px-6 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold border border-red-500/30 transition-all active:scale-95 uppercase tracking-widest"
+                >
+                  ABORT_MISSION
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="grid grid-cols-7 gap-2 md:gap-4 w-full aspect-[7/6] relative z-10">
             {board.map((row, r) => 
               row.map((cell, c) => {
                 const isLast = engine.lastMove?.r === r && engine.lastMove?.c === c;
+                const isHoverable = !engine.winner && cell === null;
                 return (
-                  <div key={`${r}-${c}`} onClick={() => onColumnClick(c)} className="w-full h-full bg-blue-950 rounded-full flex items-center justify-center cursor-pointer overflow-hidden shadow-inner relative group">
-                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition" />
+                  <div 
+                    key={`${r}-${c}`} 
+                    onClick={() => { uiAudio.click(); onColumnClick(c); }} 
+                    onMouseEnter={() => { if(isHoverable) uiAudio.hover(); }}
+                    className="w-full h-full bg-black/60 rounded-full border-[3px] border-blue-950/80 shadow-[inset_0_5px_15px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer overflow-hidden relative group hover:border-blue-500/50 transition-colors"
+                  >
+                    <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition" />
+                    
+                    {/* Ghost Drop Preview */}
+                    {isHoverable && engine.turn === myColor && (
+                       <div className={`w-[85%] h-[85%] rounded-full absolute opacity-0 group-hover:opacity-30 ${myColor==='r'?'bg-red-500':'bg-yellow-400'} shadow-[0_0_20px_currentColor]`} />
+                    )}
+
                     <AnimatePresence>
                       {cell && (
                         <motion.div 
-                          initial={{ y: -200, opacity: 0 }}
+                          initial={{ y: -400, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
-                          className={`w-[80%] h-[80%] rounded-full shadow-lg ${cell === 'r' ? 'bg-red-500' : 'bg-yellow-400'} ${isLast ? 'ring-4 ring-white/50' : ''}`}
-                        />
+                          transition={{ type: "spring", bounce: 0.5 }}
+                          className={`w-[90%] h-[90%] rounded-full shadow-2xl relative overflow-hidden flex items-center justify-center border-2 ${
+                            cell === 'r' 
+                              ? 'bg-gradient-to-br from-red-400 to-rose-700 border-red-300 shadow-[0_0_25px_rgba(225,29,72,0.6)]' 
+                              : 'bg-gradient-to-br from-yellow-300 to-orange-500 border-yellow-200 shadow-[0_0_25px_rgba(245,158,11,0.6)]'
+                          } ${isLast ? 'ring-4 ring-white shadow-[0_0_40px_#ffffff]' : ''}`}
+                        >
+                           <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/40 rounded-full" />
+                           <div className="w-[60%] h-[60%] rounded-full border-4 border-black/10 mix-blend-overlay"></div>
+                        </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
@@ -255,6 +348,21 @@ export default function Connect4Arena() {
               })
             )}
           </div>
+        </div>
+
+        {/* My Info (Cyberpunk) */}
+        <div className="w-full flex items-center justify-between mt-4 bg-zinc-950/80 p-4 rounded-2xl border-2 border-red-500/30 shadow-[0_0_20px_rgba(220,38,38,0.15)] backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-red-950 border border-red-500/50 flex items-center justify-center text-2xl shadow-inner shadow-red-500/20">😎</div>
+            <div>
+              <div className="font-black text-red-400 flex items-center gap-2 tracking-widest uppercase">
+                {mode==='multiplayer'?(myColor==='r'?user?.displayName||'Siz':opponentName):'SƏN (QIRMIZI)'}
+                <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-[10px] text-red-300 animate-pulse">{mode==='multiplayer'?user?.elo||1200:'LVL.1'}</span>
+              </div>
+              <div className="text-[10px] font-mono text-zinc-500 mt-1">İNSAN OYUNÇU - QIRMIZI KÜRLƏR</div>
+            </div>
+          </div>
+          <div className="text-xl px-4 font-black">🔴</div>
         </div>
       </div>
 
