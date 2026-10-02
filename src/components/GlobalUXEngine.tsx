@@ -95,17 +95,31 @@ export default function GlobalUXEngine() {
       }
       if (e.key === 'Escape') setCmdOpen(false);
 
-      if (konamiActivated) return;
       if (e.key === konamiCode[konamiIndex] || e.key.toLowerCase() === konamiCode[konamiIndex].toLowerCase()) {
         konamiIndex++;
         if (konamiIndex === konamiCode.length) {
-          konamiActivated = true;
-          activateMatrix();
+          if (konamiActivated) {
+            deactivateMatrix();
+            konamiActivated = false;
+          } else {
+            activateMatrix();
+            konamiActivated = true;
+          }
+          konamiIndex = 0;
         }
       } else {
         konamiIndex = 0;
       }
     };
+
+    
+    function deactivateMatrix() {
+      const c = document.getElementById('tdv-matrix-canvas');
+      if (c) {
+        c.style.opacity = '0';
+        setTimeout(() => c.remove(), 2000);
+      }
+    }
 
     function activateMatrix() {
       const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -124,6 +138,7 @@ export default function GlobalUXEngine() {
       }
 
       const c = document.createElement('canvas');
+        c.id = 'tdv-matrix-canvas';
       c.style.position = 'fixed';
       c.style.top = '0'; c.style.left = '0';
       c.style.width = '100vw'; c.style.height = '100vh';
@@ -309,10 +324,77 @@ export default function GlobalUXEngine() {
         </div>
       </div>
 
-      {/* Command Palette */}
+              {/* Cyber Command Palette (Terminal Override) */}
       {cmdOpen && (
         <div className="fixed inset-0 z-[9999999] flex items-start justify-center pt-[15vh] px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setCmdOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setCmdOpen(false)}>
+            {/* Background Grid */}
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+          </div>
+          
+          <div className="relative w-full max-w-3xl bg-zinc-950/90 backdrop-blur-2xl border-2 border-cyan-500/50 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.2)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Terminal Header */}
+            <div className="bg-cyan-950/40 border-b-2 border-cyan-500/30 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                </div>
+                <span className="text-cyan-500/80 text-xs font-mono tracking-[0.2em] uppercase font-black ml-2">SİSTEM TERMINALI</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-cyan-500/50 text-[10px] font-mono border border-cyan-500/30 px-2 py-0.5 rounded animate-pulse">CTRL+K</span>
+                <span className="text-red-500/50 text-[10px] font-mono border border-red-500/30 px-2 py-0.5 rounded cursor-pointer hover:bg-red-500/20" onClick={() => setCmdOpen(false)}>ESC</span>
+              </div>
+            </div>
+
+            {/* Input Area */}
+            <div className="flex items-center px-6 py-6 border-b border-zinc-800/50 bg-black/50 relative">
+              <span className="text-cyan-400 mr-4 font-mono text-2xl font-black">root@tdv:~#</span>
+              <input 
+                autoFocus
+                type="text" 
+                placeholder="_əmr və ya istiqamət daxil edin..." 
+                className="w-full bg-transparent border-none outline-none text-white placeholder-zinc-700 text-2xl font-mono"
+                value={cmdQuery}
+                onChange={(e) => setCmdQuery(e.target.value)}
+              />
+              {/* Scanline overlay over input */}
+              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px]"></div>
+            </div>
+
+            {/* Results */}
+            <div className="max-h-[50vh] overflow-y-auto p-4 custom-scrollbar bg-black/20">
+              <div className="text-[10px] text-zinc-500 font-mono mb-3 px-2 uppercase tracking-widest">Aktiv Modullar:</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {cmdLinks.filter(l => l.name.toLowerCase().includes(cmdQuery.toLowerCase())).map((link, i) => (
+                  <a 
+                    key={i} 
+                    href={link.path}
+                    onClick={() => setCmdOpen(false)}
+                    className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-zinc-900/50 hover:bg-cyan-950/50 border border-transparent hover:border-cyan-500/30 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-black border border-zinc-800 group-hover:border-cyan-500/50 flex items-center justify-center text-2xl shadow-lg group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
+                      {link.icon}
+                    </div>
+                    <div>
+                      <div className="font-bold text-zinc-200 group-hover:text-cyan-400 transition-colors text-lg">{link.name}</div>
+                      <div className="text-[10px] text-zinc-600 font-mono mt-1 group-hover:text-cyan-600 transition-colors">&gt;&gt; EXECUTE_PROTOCOL</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              {cmdLinks.filter(l => l.name.toLowerCase().includes(cmdQuery.toLowerCase())).length === 0 && (
+                <div className="py-12 flex flex-col items-center justify-center text-zinc-600">
+                  <span className="text-4xl mb-2">📡</span>
+                  <span className="font-mono text-sm uppercase tracking-widest">Təyinat Tapılmadı</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}></div>
           <div className="relative w-full max-w-xl bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center px-4 py-3 border-b border-zinc-800">
               <span className="text-zinc-400 mr-2">🔍</span>

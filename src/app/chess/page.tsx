@@ -584,14 +584,58 @@ export default function ChessArena() {
           <div className="relative w-full max-w-[min(100%,65vh)]">
             <AnimatePresence>
               {isSearching && (
-                <motion.div
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl"
-                >
-                  <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-                  <div className="text-xl font-black text-white">Rəqib axtarılır...</div>
-                  <button onClick={() => { setIsSearching(false); setStatus('Oyun başlayır...'); }} className="mt-4 text-xs text-zinc-500 hover:text-zinc-300">İmtina et</button>
-                </motion.div>
+                                  <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-md rounded-2xl overflow-hidden"
+                  >
+                    {/* Holographic Radar Background */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                      <div className="w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.4),transparent_60%)] animate-pulse" />
+                    </div>
+                    
+                    <div className="relative w-32 h-32 mb-6">
+                      {/* Outer spinning ring */}
+                      <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10 border-t-cyan-500 border-l-cyan-500 animate-[spin_2s_linear_infinite]" />
+                      <div className="absolute inset-2 rounded-full border-2 border-purple-500/20 border-b-purple-500 border-r-purple-500 animate-[spin_3s_linear_infinite_reverse]" />
+                      
+                      {/* Scanner sweep */}
+                      <div className="absolute inset-4 rounded-full overflow-hidden">
+                        <div className="w-full h-full" style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(6,182,212,0.8) 100%)', animation: 'spin 1.5s linear infinite' }} />
+                      </div>
+                      
+                      {/* Center blip */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_15px_#22d3ee] animate-ping" />
+                      </div>
+                      
+                      {/* Grid overlay */}
+                      <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full opacity-30">
+                        <line x1="50" y1="0" x2="50" y2="100" stroke="#06b6d4" strokeWidth="0.5" />
+                        <line x1="0" y1="50" x2="100" y2="50" stroke="#06b6d4" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="25" fill="none" stroke="#06b6d4" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#06b6d4" strokeWidth="0.5" />
+                      </svg>
+                    </div>
+
+                    <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-widest uppercase mb-2">
+                      Rəqib Axtarılır
+                    </h2>
+                    <div className="flex items-center gap-1.5 mb-6 text-cyan-500/70 text-[10px] font-mono tracking-widest">
+                      <span>SYS.SCAN</span>
+                      <span className="flex gap-0.5">
+                        <span className="w-1 h-1 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1 h-1 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1 h-1 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
+                    </div>
+
+                    <button 
+                      onClick={() => { setIsSearching(false); setStatus('Oyun başlayır...'); }} 
+                      className="px-6 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold border border-red-500/30 transition-all active:scale-95 uppercase tracking-widest"
+                    >
+                      ABORT_MISSION
+                    </button>
+                  </motion.div>
               )}
             </AnimatePresence>
             <motion.div
