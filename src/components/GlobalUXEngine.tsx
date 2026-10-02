@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { uiAudio } from '@/utils/sfx';
 
 export default function GlobalUXEngine() {
   const [radioActive, setRadioActive] = useState(false);
@@ -33,6 +34,8 @@ export default function GlobalUXEngine() {
     const handleMouseDown = (e: MouseEvent) => {
       const target = (e.target as Element).closest('button, .glass-card, .ui-card, a');
       if (!target) return;
+      uiAudio.init();
+      uiAudio.click();
       
       const el = target as HTMLElement;
       const style = window.getComputedStyle(el);

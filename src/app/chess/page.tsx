@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2, Link as LinkIcon, Eye, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import EndGameModal from '@/components/EndGameModal';
+import VsScreen from '@/components/VsScreen';
 import GameChat from '@/components/GameChat';
 import { auth, db } from '@/lib/firebase';
 import { ref, get, set, remove, onValue, push, serverTimestamp, onDisconnect, update } from 'firebase/database';
@@ -94,6 +95,7 @@ export default function ChessArena() {
   const [roomId, setRoomId]         = useState<string | null>(null);
   const [myColor, setMyColor]       = useState<'w' | 'b'>('w');
   const [isSpectator, setIsSpectator] = useState(false);
+  const [showVs, setShowVs] = useState(false);
   const [opponentName, setOpponentName] = useState<string>('');
   const [opponentElo, setOpponentElo]   = useState<number>(1200);
 
@@ -380,7 +382,7 @@ export default function ChessArena() {
       setRoomId(roomRef.key!);
       setMyColor('b');
       resetGame(false);
-      toast.success('Oyun başladı! Uğurlar 🎲');
+      setShowVs(true);
       setIsSearching(false);
     } else {
       await set(waitRef, user.uid);
@@ -392,7 +394,7 @@ export default function ChessArena() {
           setRoomId(found.roomId);
           setMyColor('w');
           resetGame(false);
-          toast.success('Oyun başladı! Uğurlar 🎲');
+          setShowVs(true);
           setIsSearching(false);
           remove(matchRef);
           remove(waitRef);
