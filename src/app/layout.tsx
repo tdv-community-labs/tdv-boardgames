@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 import { Toaster } from 'react-hot-toast';
 import DailyQuests from '@/components/DailyQuests';
 import PageTransition from '@/components/PageTransition';
+import GlobalUXEngine from '@/components/GlobalUXEngine';
 
 export default function RootLayout({
   children,
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="az" className="dark">
       <body className={`${inter.variable} ${jbMono.variable} font-sans bg-zinc-950 text-white min-h-screen selection:bg-purple-500/30`}>
+        <GlobalUXEngine />
         {/* Synthwave Ambient Background */}
         <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-zinc-950 flex items-center justify-center">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.15),transparent_70%)]"></div>
