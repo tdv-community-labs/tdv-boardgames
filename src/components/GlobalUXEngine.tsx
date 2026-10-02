@@ -137,8 +137,18 @@ export default function GlobalUXEngine() {
       }, 30);
     }
 
+    // 4. MOUSE GLOW
+    const handleMouseMove = (e: MouseEvent) => {
+      const glow = document.getElementById('tdv-mouse-glow');
+      if (glow) {
+        glow.style.left = `${e.clientX}px`;
+        glow.style.top = `${e.clientY}px`;
+      }
+    };
+
     document.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousemove', handleMouseMove);
     
     applyGlitch();
     const observer = new MutationObserver((mutations) => {
@@ -155,6 +165,7 @@ export default function GlobalUXEngine() {
     return () => {
       document.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousemove', handleMouseMove);
       observer.disconnect();
     };
   }, []);
@@ -231,7 +242,21 @@ export default function GlobalUXEngine() {
         .tdv-glitch-text::after { left: -2px; text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1; animation: tdvGlitchAnim2 5s infinite linear alternate-reverse; }
         @keyframes tdvGlitchAnim { 0% { clip: rect(10px, 9999px, 83px, 0); } 20% { clip: rect(48px, 9999px, 25px, 0); } 100% { clip: rect(1px, 9999px, 100px, 0); } }
         @keyframes tdvGlitchAnim2 { 0% { clip: rect(65px, 9999px, 100px, 0); } 20% { clip: rect(38px, 9999px, 85px, 0); } 100% { clip: rect(51px, 9999px, 30px, 0); } }
+        
+        #tdv-mouse-glow {
+          position: fixed;
+          top: 0; left: 0;
+          width: 400px; height: 400px;
+          background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          z-index: -1;
+          transition: width 0.3s, height 0.3s;
+        }
       `}} />
+      
+      <div id="tdv-mouse-glow"></div>
       
       <div 
         className="fixed bottom-0 left-1/2 -translate-x-1/2 w-40 h-3 z-[9999994] cursor-pointer"
