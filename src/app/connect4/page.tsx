@@ -25,6 +25,9 @@ export default function Connect4Arena() {
   const [difficulty, setDifficulty] = useState<number>(3); 
   const [roomId, setRoomId] = useState<string | null>(null);
   const [myColor, setMyColor] = useState<'r'|'y'>('r');
+  const [showVs, setShowVs] = useState(false);
+  const [opponentName, setOpponentName] = useState('Oyunçu');
+  const [opponentElo, setOpponentElo] = useState(1200);
   const [isSpectator, setIsSpectator] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [status, setStatus] = useState<string>('Oyun Başladı');
