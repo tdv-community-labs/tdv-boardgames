@@ -327,7 +327,7 @@ export default function GlobalUXEngine() {
         </div>
       </div>
 
-              {/* Cyber Command Palette (Terminal Override) */}
+                    {/* Cyber Command Palette (Terminal Override) */}
       {cmdOpen && (
         <div className="fixed inset-0 z-[9999999] flex items-start justify-center pt-[15vh] px-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setCmdOpen(false)}>
@@ -397,37 +397,7 @@ export default function GlobalUXEngine() {
             </div>
           </div>
         </div>
-      )}></div>
-          <div className="relative w-full max-w-xl bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center px-4 py-3 border-b border-zinc-800">
-              <span className="text-zinc-400 mr-2">🔍</span>
-              <input 
-                autoFocus
-                type="text" 
-                placeholder="Axtar və ya bir səhifəyə get..." 
-                className="w-full bg-transparent border-none outline-none text-white placeholder-zinc-500 text-lg"
-                value={cmdQuery}
-                onChange={(e) => setCmdQuery(e.target.value)}
-              />
-              <div className="text-[10px] font-mono text-zinc-500 border border-zinc-800 px-1.5 py-0.5 rounded bg-zinc-800/50">ESC</div>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto p-2">
-              {cmdLinks.filter(l => l.name.toLowerCase().includes(cmdQuery.toLowerCase())).map((link, i) => (
-                <a 
-                  key={i} 
-                  href={link.path}
-                  onClick={() => setCmdOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-zinc-800/80 text-zinc-300 hover:text-white transition-colors"
-                >
-                  <span className="text-xl">{link.icon}</span>
-                  <span className="font-medium">{link.name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
       )}
     </div>
-
   );
 }
