@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import {  Clock, ArrowLeft, Flag, Shield, Swords , Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import EndGameModal from '@/components/EndGameModal';
+import VsScreen from '@/components/VsScreen';
+import { uiAudio } from '@/utils/sfx';
+import { AnimatePresence } from 'framer-motion';
 import GameChat from '@/components/GameChat';
 import { CheckersEngine, Move, BoardState } from './engine';
 import { playMoveSound, playCaptureSound } from '@/utils/sounds';
@@ -23,6 +26,9 @@ export default function CheckersArena() {
   const [isSearching, setIsSearching] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [myColor, setMyColor] = useState<'w' | 'b'>('w');
+  const [showVs, setShowVs] = useState(false);
+  const [opponentName, setOpponentName] = useState('Oyunçu');
+  const [opponentElo, setOpponentElo] = useState(1200);
 
   useEffect(() => { localStorage.setItem('tdv-checkers', engine.serialize()); }, [board, engine.turn]);
   const [status, setStatus] = useState<string>('Oyun Başladı. Gediş: Ağlar');
@@ -160,7 +166,7 @@ export default function CheckersArena() {
       setRoomId(newRoomId);
       setMyColor('b');
       resetGame();
-      setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '🔥' }); toast.success('Rəqib qoşuldu! Oyun Başladı.', { icon: '🔥' });
+      setStatus('Oyun Başladı! Uğurlar.'); setShowVs(true); uiAudio.success(); setShowVs(true); uiAudio.success();
       setIsSearching(false);
     } else {
       await set(waitingRef, user.uid);
@@ -173,7 +179,7 @@ export default function CheckersArena() {
           setRoomId(foundRoomId);
           setMyColor('w');
           resetGame();
-          setStatus('Oyun Başladı! Uğurlar.'); toast.success('Oyun Başladı! Uğurlar.', { icon: '🔥' });
+          setStatus('Oyun Başladı! Uğurlar.'); setShowVs(true); uiAudio.success();
           setIsSearching(false);
           remove(matchRef);
         }
@@ -293,60 +299,128 @@ export default function CheckersArena() {
         <span className="text-sm font-bold uppercase tracking-widest">Geri Qayıt</span>
       </Link>
       
+            {/* Epic Match Intro Screen */}
+      <VsScreen 
+        show={showVs} 
+        player1Name={myColor === 'w' ? user?.displayName || 'Siz' : opponentName}
+        player2Name={myColor === 'b' ? user?.displayName || 'Siz' : opponentName}
+        player1Avatar="😎"
+        player2Avatar="🤖"
+        onComplete={() => setShowVs(false)}
+      />
+
       {/* Board Area */}
-      <div className="flex-1 flex flex-col items-center justify-center relative">
+      <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         
-        {/* Opponent Info */}
-        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mb-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        {/* Opponent Info (Cyberpunk) */}
+        <div className="w-full max-w-[600px] flex items-center justify-between mb-4 bg-zinc-950/80 p-4 rounded-2xl border-2 border-red-500/30 shadow-[0_0_20px_rgba(220,38,38,0.15)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
+            <div className="w-12 h-12 rounded-xl bg-red-950 border border-red-500/50 flex items-center justify-center text-2xl shadow-inner shadow-red-500/20">
               🤖
             </div>
             <div>
-              <div className="font-bold text-white flex items-center gap-2">
-                {blackPlayer.name} <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{blackPlayer.elo}</span>
+              <div className="font-black text-red-400 flex items-center gap-2 tracking-widest uppercase">
+                {blackPlayer.name} <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-[10px] text-red-300 animate-pulse">{blackPlayer.elo}</span>
               </div>
-              <div className="text-xs text-red-400 flex items-center gap-1 font-mono">
+              <div className="text-xs text-zinc-400 flex items-center gap-1 font-mono mt-1">
                 <Clock className="w-3 h-3" /> {formatTime(blackTime)}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Custom Checkerboard */}
-        <div className="w-full max-w-full sm:max-w-[65vh] aspect-square rounded-lg overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)] ring-4 ring-zinc-800/50">
-          <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
+        {/* Custom Checkerboard (Cyberpunk Laser Grid) */}
+        <div className="w-full max-w-[600px] aspect-square rounded-2xl p-2 md:p-4 shadow-[0_0_60px_rgba(220,38,38,0.15)] ring-4 ring-red-500/20 bg-zinc-950/90 relative backdrop-blur-3xl overflow-hidden">
+          {/* Holographic Underglow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.15),transparent_70%)] pointer-events-none"></div>
+
+          {/* Searching Overlay */}
+          <AnimatePresence>
+            {isSearching && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-md rounded-2xl overflow-hidden"
+              >
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                  <div className="w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.4),transparent_60%)] animate-pulse" />
+                </div>
+                
+                <div className="relative w-32 h-32 mb-6">
+                  <div className="absolute inset-0 rounded-full border-4 border-red-500/10 border-t-red-500 border-l-red-500 animate-[spin_2s_linear_infinite]" />
+                  <div className="absolute inset-2 rounded-full border-2 border-orange-500/20 border-b-orange-500 border-r-orange-500 animate-[spin_3s_linear_infinite_reverse]" />
+                  <div className="absolute inset-4 rounded-full overflow-hidden">
+                    <div className="w-full h-full" style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(220,38,38,0.8) 100%)', animation: 'spin 1.5s linear infinite' }} />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-red-400 rounded-full shadow-[0_0_15px_#f87171] animate-ping" />
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500 tracking-widest uppercase mb-2">
+                  Rəqib Axtarılır
+                </h2>
+                <div className="flex items-center gap-1.5 mb-6 text-red-500/70 text-[10px] font-mono tracking-widest">
+                  <span>SYS.SCAN</span>
+                  <span className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
+
+                <button 
+                  onClick={() => { setIsSearching(false); setStatus('Oyun başlayır...'); uiAudio.click(); }} 
+                  className="px-6 py-2 rounded-xl bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 text-xs font-bold border border-zinc-500/30 transition-all active:scale-95 uppercase tracking-widest"
+                >
+                  ABORT_MISSION
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="grid grid-cols-8 grid-rows-8 w-full h-full border border-red-500/20 relative z-10">
             {board.map((row, rIndex) => (
               row.map((cell, cIndex) => {
                 const isDark = (rIndex + cIndex) % 2 === 1;
                 const isSelected = selectedCell?.r === rIndex && selectedCell?.c === cIndex;
                 const isLastMoveFrom = engine.lastMove && engine.lastMove.from.r === rIndex && engine.lastMove.from.c === cIndex;
-              const isLastMoveTo = engine.lastMove && engine.lastMove.to.r === rIndex && engine.lastMove.to.c === cIndex;
-              const isPossibleMove = validMoves.some(m => m.toRow === rIndex && m.toCol === cIndex);
+                const isLastMoveTo = engine.lastMove && engine.lastMove.to.r === rIndex && engine.lastMove.to.c === cIndex;
+                const isPossibleMove = validMoves.some(m => m.toRow === rIndex && m.toCol === cIndex);
 
                 return (
                   <div 
                     key={`${rIndex}-${cIndex}`} 
-                    onClick={() => handleCellClick(rIndex, cIndex)}
-                    className={`w-full h-full flex items-center justify-center relative cursor-pointer ${isDark ? 'bg-[#27272a]' : 'bg-[#e4e4e7]'}`}
+                    onClick={() => { uiAudio.click(); handleCellClick(rIndex, cIndex); }}
+                    onMouseEnter={() => { if(isPossibleMove || (cell && cell.color.toLowerCase() === myColor)) uiAudio.hover(); }}
+                    className={`w-full h-full flex items-center justify-center relative cursor-pointer overflow-hidden ${
+                      isDark ? 'bg-zinc-950 border border-red-900/10' : 'bg-red-950/20 border border-red-500/5'
+                    } ${isLastMoveFrom || isLastMoveTo ? 'bg-orange-950/40' : ''}`}
                   >
-                    {/* Possible move dot */}
+                    {/* Possible move dot (Hologram target) */}
                     {isPossibleMove && (
-                      <div className="absolute w-4 h-4 rounded-full bg-red-500/50 z-0" />
+                      <div className="absolute w-6 h-6 rounded-full border-2 border-dashed border-red-400 animate-[spin_3s_linear_infinite] opacity-50 z-0" />
+                    )}
+                    {isPossibleMove && (
+                      <div className="absolute w-2 h-2 rounded-full bg-red-400 shadow-[0_0_10px_#f87171] z-0 animate-ping" />
                     )}
                     
-                    {/* Piece */}
+                    {/* Piece (Cyberpunk Energy Disk) */}
                     {cell && (
                       <motion.div 
                         layoutId={cell.id}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className={`z-10 w-[80%] h-[80%] rounded-full shadow-inner flex items-center justify-center border-4 ${
-                          cell.color.toLowerCase() === 'w' ? 'bg-zinc-200 border-white' : 'bg-zinc-800 border-zinc-950'
-                        } ${isSelected ? 'ring-4 ring-red-500 ring-offset-2 ring-offset-transparent' : ''}`}
+                        className={`z-10 w-[85%] h-[85%] rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden ${
+                          cell.color.toLowerCase() === 'w' 
+                            ? 'bg-gradient-to-br from-cyan-400 to-blue-600 shadow-[0_0_20px_rgba(6,182,212,0.6)] border border-cyan-200/50' 
+                            : 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-[0_0_20px_rgba(217,70,239,0.6)] border border-pink-200/50'
+                        } ${isSelected ? 'ring-4 ring-white shadow-[0_0_30px_#ffffff]' : ''}`}
                       >
-                        <div className={`w-[70%] h-[70%] rounded-full border-2 flex items-center justify-center font-black ${cell.color.toLowerCase() === 'w' ? 'border-zinc-300 text-zinc-400' : 'border-zinc-700 text-zinc-500'}`}>
-                          {cell.color === 'W' || cell.color === 'B' ? 'K' : ''}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/30 rounded-full" />
+                        
+                        {/* King Icon (Crown Hologram) */}
+                        <div className={`w-[60%] h-[60%] rounded-full flex items-center justify-center font-black drop-shadow-md text-white/90`}>
+                          {(cell.color === 'W' || cell.color === 'B') ? '👑' : ''}
                         </div>
                       </motion.div>
                     )}
@@ -357,17 +431,17 @@ export default function CheckersArena() {
           </div>
         </div>
 
-        {/* My Info */}
-        <div className="w-full max-w-full sm:max-w-[65vh] flex items-center justify-between mt-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        {/* My Info (Cyberpunk) */}
+        <div className="w-full max-w-[600px] flex items-center justify-between mt-4 bg-zinc-950/80 p-4 rounded-2xl border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/50 text-red-400">
+            <div className="w-12 h-12 rounded-xl bg-cyan-950 border border-cyan-500/50 flex items-center justify-center text-2xl shadow-inner shadow-cyan-500/20">
               😎
             </div>
             <div>
-              <div className="font-bold text-white flex items-center gap-2">
-                {whitePlayer.name} <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{whitePlayer.elo}</span>
+              <div className="font-black text-cyan-400 flex items-center gap-2 tracking-widest uppercase">
+                {whitePlayer.name} <span className="px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-300 animate-pulse">{whitePlayer.elo}</span>
               </div>
-              <div className="text-xs text-emerald-400 flex items-center gap-1 font-mono">
+              <div className="text-xs text-zinc-400 flex items-center gap-1 font-mono mt-1">
                 <Clock className="w-3 h-3" /> {formatTime(whiteTime)}
               </div>
             </div>
