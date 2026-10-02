@@ -108,7 +108,7 @@ export default function GlobalUXEngine() {
     };
 
     function activateMatrix() {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
       if (AudioContextClass) {
         const actx = new AudioContextClass();
         const osc = actx.createOscillator();
@@ -205,7 +205,7 @@ export default function GlobalUXEngine() {
   };
 
   const toggleRadio = () => {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
 
     if (!isPlaying) {
@@ -256,8 +256,8 @@ export default function GlobalUXEngine() {
   };
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: `
+    <div>
+      <style>{`
         @keyframes tdvRippleAnim { to { transform: scale(4); opacity: 0; } }
         .tdv-glitch-text { position: relative; display: inline-block; }
         .tdv-glitch-text::before, .tdv-glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8; pointer-events: none; }
@@ -277,7 +277,7 @@ export default function GlobalUXEngine() {
           z-index: -1;
           transition: width 0.3s, height 0.3s;
         }
-      `}} />
+      `}</style>
       
       <div id="tdv-mouse-glow"></div>
       
@@ -299,7 +299,7 @@ export default function GlobalUXEngine() {
         </button>
         <div className="flex items-end gap-1 h-5">
           {heights.map((h, i) => (
-            <div key={i} className="w-1 bg-purple-500 rounded-sm shadow-[0_0_5px_#a855f7] transition-all duration-100" style={{ height: \`\${h}px\` }}></div>
+            <div key={i} className="w-1 bg-purple-500 rounded-sm shadow-[0_0_5px_#a855f7] transition-all duration-100" style={{ height: `${h}px` }}></div>
           ))}
         </div>
         <div className="text-[11px] font-bold text-purple-200 tracking-wide whitespace-nowrap">
@@ -340,7 +340,7 @@ export default function GlobalUXEngine() {
           </div>
         </div>
       )}
-    </>
+    </div>
 
   );
 }

@@ -224,6 +224,7 @@ export default function DailyQuests() {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
 
       {/* CHEST MODAL */}
       <AnimatePresence>
