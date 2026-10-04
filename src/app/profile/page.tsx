@@ -84,7 +84,7 @@ export default function ProfilePage() {
           unlockedBanners: [...(stats.unlockedBanners || []), bannerId],
           banner: bannerId
         });
-        setBanner(bannerId);
+        setBanner(bannerId); setStats({...stats, banner: bannerId, spentCoins: (stats.spentCoins || 0) + cost, unlockedBanners: [...(stats.unlockedBanners || []), bannerId]});
         toast.success('Arxaplan uğurla alındı!');
       }
     } else {
@@ -108,7 +108,7 @@ export default function ProfilePage() {
           unlockedAvatars: [...unlockedAvatars, icon],
           avatar: icon
         });
-        setAvatar(icon);
+        setAvatar(icon); setStats({...stats, avatar: icon, spentCoins: (stats.spentCoins || 0) + cost, unlockedAvatars: [...(stats.unlockedAvatars || []), icon]});
         toast.success('Avatar uğurla alındı!');
       }
     } else {
@@ -150,11 +150,14 @@ export default function ProfilePage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="md:col-span-1 bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 backdrop-blur-xl flex flex-col items-center text-center"
+            className={`md:col-span-1 border rounded-3xl p-6 backdrop-blur-xl flex flex-col items-center text-center relative overflow-hidden transition-all duration-500 ${BANNERS.find(b => b.id === (stats.banner || 'default'))?.style}`}
           >
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
+            <div className="relative z-10 flex flex-col items-center w-full h-full">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 p-1 mb-4">
               <div className="w-full h-full bg-zinc-950 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-white" />
+                <span className="text-4xl">{stats.avatar || "😎"}</span>
               </div>
             </div>
             
@@ -190,6 +193,7 @@ export default function ProfilePage() {
             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold transition mt-auto">
               <LogOut className="w-4 h-4" /> Hesabdan Çıx
             </button>
+            </div>
           </motion.div>
 
           {/* Stats Grid */}
@@ -231,6 +235,77 @@ export default function ProfilePage() {
           </div>
 
             
+
+          {/* Cyberpunk Store */}
+          <div className="md:col-span-3 mt-8">
+            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600 mb-6 flex items-center gap-2">
+              🛒 TDV Qara Bazar
+              <span className="text-sm bg-amber-500/10 border border-amber-500/20 text-amber-500 px-3 py-1 rounded-full ml-auto">
+                Balans: {currentCoins} 🪙
+              </span>
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Banners Store */}
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6">
+                <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Holoqrafik Arxaplanlar</h4>
+                <div className="flex flex-col gap-3">
+                  {BANNERS.map(b => {
+                    const isUnlocked = b.id === 'default' || (stats.unlockedBanners || []).includes(b.id);
+                    const isEquipped = (stats.banner || 'default') === b.id;
+                    return (
+                      <div key={b.id} className={`p-4 rounded-2xl flex items-center justify-between border ${isEquipped ? 'border-amber-500 bg-amber-500/10' : 'border-zinc-800 bg-zinc-950'} transition-all`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl border ${b.style}`}></div>
+                          <div>
+                            <div className="font-bold text-white">{b.name}</div>
+                            {!isUnlocked && <div className="text-xs text-amber-400">{b.cost} 🪙</div>}
+                          </div>
+                        </div>
+                        {isEquipped ? (
+                          <div className="text-xs font-black text-amber-500 uppercase">Aktivdir</div>
+                        ) : isUnlocked ? (
+                          <button onClick={() => {
+                            update(ref(db, `users/${user!.uid}`), { banner: b.id });
+                            setStats({...stats, banner: b.id});
+                          }} className="text-xs font-bold bg-zinc-800 text-white px-3 py-1.5 rounded-lg hover:bg-zinc-700 transition">Quraşdır</button>
+                        ) : (
+                          <button onClick={() => handleBuyBanner(b.id, b.cost)} className="text-xs font-bold bg-amber-600 text-black px-3 py-1.5 rounded-lg hover:bg-amber-500 transition shadow-[0_0_10px_rgba(217,119,6,0.4)]">Satın Al</button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Premium Avatars Store */}
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6">
+                <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Premium Avatarlar</h4>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                  {PREMIUM_AVATARS.map((av, i) => {
+                    const isUnlocked = (stats.unlockedAvatars || []).includes(av.icon);
+                    const isEquipped = (stats.avatar || '😎') === av.icon;
+                    return (
+                      <div key={i} className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${isEquipped ? 'border-amber-500 bg-amber-500/20 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : isUnlocked ? 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700' : 'border-zinc-900 bg-zinc-950 opacity-70 hover:opacity-100'}`}
+                           onClick={() => {
+                             if(isUnlocked && !isEquipped) {
+                               update(ref(db, `users/${user!.uid}`), { avatar: av.icon });
+                               setStats({...stats, avatar: av.icon});
+                             } else if(!isUnlocked) {
+                               handleBuyAvatar(av.icon, av.cost);
+                             }
+                           }}>
+                        <div className="text-3xl">{av.icon}</div>
+                        {!isUnlocked && <div className="text-[9px] font-black text-amber-500 bg-black/50 px-1 rounded">{av.cost}🪙</div>}
+                        {isEquipped && <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-1 animate-pulse"></div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
               {/* Per-Game Breakdown */}
               <div className="md:col-span-2 mt-2 mb-4">
                 <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">🎮 Oyun Statistikası</h3>

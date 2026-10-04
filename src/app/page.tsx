@@ -188,7 +188,113 @@ export default function Home() {
         ))}
       </div>
 
+
+      
+      {/* Cyberpunk Command Center */}
+      <div className="mt-20 w-full relative z-10">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent flex-1 opacity-50" />
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 uppercase tracking-[0.2em] flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_15px_#06b6d4]"></span>
+            Qlobal Baza
+          </h2>
+          <div className="h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent flex-1 opacity-50" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Global Chat Console */}
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-1 bg-zinc-950/80 border border-cyan-900/50 rounded-[2rem] overflow-hidden backdrop-blur-2xl relative shadow-[0_0_30px_rgba(6,182,212,0.1)]"
+          >
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
+            <div className="p-4 bg-cyan-950/30 border-b border-cyan-900/50 flex justify-between items-center">
+              <span className="text-xs font-black text-cyan-500 uppercase tracking-widest flex items-center gap-2">
+                📡 Ümumi Kanal
+              </span>
+              <span className="text-[9px] text-cyan-700 font-mono">SYS.COMM.ONLINE</span>
+            </div>
+            <div className="p-4 h-[400px]">
+              <GlobalChat />
+            </div>
+          </motion.div>
+
+          {/* Live Matches Feed (RecentFeed) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="lg:col-span-1 bg-zinc-950/80 border border-emerald-900/50 rounded-[2rem] overflow-hidden backdrop-blur-2xl relative shadow-[0_0_30px_rgba(16,185,129,0.1)]"
+          >
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-50"></div>
+            <div className="p-4 bg-emerald-950/30 border-b border-emerald-900/50 flex justify-between items-center">
+              <span className="text-xs font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                ⚔️ Canlı Nəticələr
+              </span>
+              <span className="text-[9px] text-emerald-700 font-mono">LIVE.FEED.SECURE</span>
+            </div>
+            <div className="p-4 h-[400px] overflow-hidden">
+              <RecentFeed />
+            </div>
+          </motion.div>
+
+          {/* Holographic Radar (Tournaments) */}
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 }}
+            className="lg:col-span-1 bg-zinc-950/80 border border-purple-900/50 rounded-[2rem] overflow-hidden backdrop-blur-2xl relative shadow-[0_0_30px_rgba(168,85,247,0.1)] flex flex-col"
+          >
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
+            <div className="p-4 bg-purple-950/30 border-b border-purple-900/50 flex justify-between items-center">
+              <span className="text-xs font-black text-purple-500 uppercase tracking-widest flex items-center gap-2">
+                🎯 Turnir Radarı
+              </span>
+              <span className="text-[9px] text-purple-700 font-mono">SCAN.TDV26.ACTV</span>
+            </div>
+            
+            <div className="flex-1 p-6 flex flex-col items-center justify-center relative">
+              <div className="absolute inset-0 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
+              
+              <div className="relative w-48 h-48 mb-6">
+                {/* SVG Radar Chart */}
+                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-[0_0_15px_rgba(168,85,247,0.6)] animate-[spin_30s_linear_infinite]">
+                  <polygon points="50,10 90,38 75,85 25,85 10,38" fill="none" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
+                  <polygon points="50,25 80,45 68,75 32,75 20,45" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5" />
+                  <line x1="50" y1="50" x2="50" y2="10" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="90" y2="38" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="75" y2="85" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="25" y2="85" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="10" y2="38" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                  
+                  <polygon points="50,20 85,40 60,80 35,70 15,45" fill="rgba(168, 85, 247, 0.2)" stroke="#a855f7" strokeWidth="1.5" className="animate-pulse" />
+                  
+                  <circle cx="50" cy="20" r="2" fill="#fff" className="shadow-[0_0_10px_#fff]" />
+                  <circle cx="85" cy="40" r="2" fill="#fff" />
+                  <circle cx="60" cy="80" r="2" fill="#fff" />
+                  <circle cx="35" cy="70" r="2" fill="#fff" />
+                  <circle cx="15" cy="45" r="2" fill="#fff" />
+                </svg>
+                {/* Scanner line */}
+                <div className="absolute inset-0 rounded-full border border-purple-500/20" style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(168,85,247,0.4) 100%)', animation: 'spin 2s linear infinite' }}></div>
+              </div>
+
+              <div className="text-center w-full">
+                <h3 className="text-lg font-black text-white mb-2">CANLI TURNİR #TDV26</h3>
+                <p className="text-xs text-purple-400 font-bold mb-4">128 İŞTİRAKÇI GÖZLƏYİR</p>
+                <button className="w-full py-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 font-bold border border-purple-500/30 transition shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]">
+                  MÜBARİZƏYƏ QOŞUL
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+
     </div>
   );
 }
-
