@@ -14,7 +14,7 @@ import { updateStreakAndQuests } from '@/utils/streaks';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
-import { playMoveSound, playCaptureSound } from '@/utils/sounds';
+import { playMoveSound, playCaptureSound, playCheckSound } from '@/utils/sounds';
 
 /* ─── Board Themes ─────────────────────────────────── */
 const THEMES = {
@@ -199,6 +199,7 @@ export default function ChessArena() {
           const res = next.move(chosenMove);
           if (res) {
             if (res.captured) playCaptureSound();
+            else if (next.isCheck()) playCheckSound();
             else playMoveSound();
             setLastMove({ from: chosenMove.from, to: chosenMove.to });
             setMoves(next.history({ verbose: true }) as Move[]);
@@ -454,6 +455,7 @@ export default function ChessArena() {
       if (!res) return false;
 
       if (res.captured) playCaptureSound();
+      else if (next.isCheck()) playCheckSound();
       else playMoveSound();
 
       // Add increment if clock is running or started
