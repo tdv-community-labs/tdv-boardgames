@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess, Move } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2, Link as LinkIcon, Eye, RotateCcw } from 'lucide-react';
+import { Clock, Shield, Flag, Swords, ArrowLeft, Cpu, Users, Loader2, Link as LinkIcon, Eye, RotateCcw, Sliders, Check } from 'lucide-react';
 import Link from 'next/link';
 import EndGameModal from '@/components/EndGameModal';
 import GameChat from '@/components/GameChat';
@@ -26,11 +26,41 @@ const THEMES = {
 type ThemeKey = keyof typeof THEMES;
 
 /* ─── Time Controls ────────────────────────────────── */
-const TIME_CONTROLS = [
-  { label: '1+0',  secs: 60,  name: 'Bullet' },
-  { label: '3+0',  secs: 180, name: 'Blitz'  },
-  { label: '5+0',  secs: 300, name: 'Rapid'  },
-  { label: '10+0', secs: 600, name: 'Klassik'},
+interface TimeControlConfig {
+  label: string;
+  secs: number;
+  inc: number;
+  name: string;
+}
+
+const PRESET_TIME_CONTROLS: TimeControlConfig[] = [
+  { label: '1+0',  secs: 60,  inc: 0, name: 'Bullet' },
+  { label: '3+0',  secs: 180, inc: 0, name: 'Blitz'  },
+  { label: '3+1',  secs: 180, inc: 1, name: 'Blitz'  },
+  { label: '5+0',  secs: 300, inc: 0, name: 'Rapid'  },
+  { label: '5+2',  secs: 300, inc: 2, name: 'Rapid'  },
+  { label: '10+0', secs: 600, inc: 0, name: 'Klassik'},
+];
+
+/* ─── Bot Difficulty Levels ────────────────────────── */
+interface BotDifficulty {
+  level: number;
+  name: string;
+  elo: string;
+  icon: string;
+  skill: number;
+  depth: number;
+  blunderRate: number; // probability of choosing a suboptimal move
+  delayMin: number;
+  delayMax: number;
+}
+
+const BOT_LEVELS: BotDifficulty[] = [
+  { level: 1, name: 'Asan',        elo: '600-800',   icon: '🌱', skill: 0,  depth: 1,  blunderRate: 0.35, delayMin: 800,  delayMax: 1400 },
+  { level: 2, name: 'Həvəskar',    elo: '1000-1100', icon: '⚔️', skill: 3,  depth: 3,  blunderRate: 0.15, delayMin: 900,  delayMax: 1500 },
+  { level: 3, name: 'Orta',        elo: '1400',      icon: '🎯', skill: 7,  depth: 5,  blunderRate: 0.05, delayMin: 1000, delayMax: 1700 },
+  { level: 4, name: 'Usta',        elo: '1800',      icon: '🏆', skill: 14, depth: 8,  blunderRate: 0.0,  delayMin: 1200, delayMax: 2000 },
+  { level: 5, name: 'Qrossmeyster',elo: '2500+',     icon: '🤖', skill: 20, depth: 14, blunderRate: 0.0,  delayMin: 1300, delayMax: 2200 },
 ];
 
 /* ─── Elo & Stats Update ───────────────────────────── */
@@ -91,13 +121,21 @@ export default function ChessArena() {
   /* ── UI Settings ── */
   const [theme, setTheme] = useState<ThemeKey>('classic');
   const [mode, setMode] = useState<'bot' | 'multiplayer'>('bot');
-  const [difficulty, setDifficulty] = useState(10);
+  const [botLevel, setBotLevel] = useState<BotDifficulty>(BOT_LEVELS[1]); // Default: Həvəskar (~1000 ELO)
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
-  /* ── Clock ── */
-  const [timeControl, setTimeControl] = useState(300);
-  const [whiteTime, setWhiteTime] = useState(300);
-  const [blackTime, setBlackTime] = useState(300);
+  /* ── Clock & Time Control ── */
+  const [timeControl, setTimeControl] = useState(180); // 3 dəq
+  const [increment, setIncrement] = useState(1);       // 1 san artım (3+1 default)
+  const [activeTcLabel, setActiveTcLabel] = useState('3+1');
+  const [whiteTime, setWhiteTime] = useState(180);
+  const [blackTime, setBlackTime] = useState(180);
   const [clockRunning, setClockRunning] = useState(false);
+
+  /* ── Custom Time Modal/Drawer ── */
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState(5);
+  const [customInc, setCustomInc] = useState(3);
 
   /* ── Multiplayer ── */
   const [user, setUser] = useState<User | null>(null);
@@ -114,6 +152,7 @@ export default function ChessArena() {
 
   const engine = useRef<Worker | null>(null);
   const movesEndRef = useRef<HTMLDivElement>(null);
+  const botTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -142,34 +181,68 @@ export default function ChessArena() {
     }
   }, []);
 
-  /* ── Helper: Bot Move ── */
+  /* ── Helper: Bot Move with Human-like Delay & Balanced Difficulty ── */
   const makeBotMove = useCallback((currentGame: Chess) => {
     if (currentGame.isGameOver()) return;
 
+    setIsAiThinking(true);
     let moveHandled = false;
 
-    // Safety Fallback: If Stockfish does not respond within 1.1s, execute legal move
+    // Calculate natural delay (e.g. 800 - 1600ms)
+    const delay = Math.floor(Math.random() * (botLevel.delayMax - botLevel.delayMin)) + botLevel.delayMin;
+
+    const executeMove = (chosenMove: { from: string; to: string; promotion?: string }) => {
+      botTimeoutRef.current = setTimeout(() => {
+        setIsAiThinking(false);
+        setGame(prev => {
+          const next = new Chess(prev.fen());
+          const res = next.move(chosenMove);
+          if (res) {
+            if (res.captured) playCaptureSound();
+            else playMoveSound();
+            setLastMove({ from: chosenMove.from, to: chosenMove.to });
+            setMoves(next.history({ verbose: true }) as Move[]);
+            updateStatus(next);
+
+            // Add increment to black time
+            if (increment > 0) {
+              setBlackTime(t => t + increment);
+            }
+          }
+          return next;
+        });
+      }, delay);
+    };
+
+    // If bot blunders intentionally based on difficulty (e.g., Level 1 Asan)
+    if (botLevel.blunderRate > 0 && Math.random() < botLevel.blunderRate) {
+      const legalMoves = currentGame.moves({ verbose: true });
+      if (legalMoves.length > 0) {
+        // Pick a non-capturing or casual move if available
+        const nonCaptures = legalMoves.filter(m => !m.captured);
+        const randomMove = (nonCaptures.length > 0 && Math.random() < 0.7)
+          ? nonCaptures[Math.floor(Math.random() * nonCaptures.length)]
+          : legalMoves[Math.floor(Math.random() * legalMoves.length)];
+
+        moveHandled = true;
+        executeMove({ from: randomMove.from, to: randomMove.to, promotion: 'q' });
+        return;
+      }
+    }
+
+    // Safety Fallback Timer if Stockfish worker fails to respond
     const fallbackTimer = setTimeout(() => {
       if (moveHandled) return;
       moveHandled = true;
       const legalMoves = currentGame.moves({ verbose: true });
       if (legalMoves.length === 0) return;
       const captures = legalMoves.filter(m => m.captured);
-      const chosen = captures.length > 0
+      const chosen = (captures.length > 0 && botLevel.level >= 2)
         ? captures[Math.floor(Math.random() * captures.length)]
         : legalMoves[Math.floor(Math.random() * legalMoves.length)];
 
-      const next = new Chess(currentGame.fen());
-      const res = next.move(chosen);
-      if (res) {
-        if (res.captured) playCaptureSound();
-        else playMoveSound();
-        setLastMove({ from: chosen.from, to: chosen.to });
-        setGame(next);
-        setMoves(next.history({ verbose: true }) as Move[]);
-        updateStatus(next);
-      }
-    }, 1100);
+      executeMove({ from: chosen.from, to: chosen.to, promotion: 'q' });
+    }, delay + 400);
 
     if (engine.current) {
       engine.current.onmessage = (e: MessageEvent) => {
@@ -183,27 +256,16 @@ export default function ChessArena() {
             const to = match[2];
             const promotion = match[3] || (to[1] === '1' ? 'q' : undefined);
 
-            setGame(prev => {
-              const next = new Chess(prev.fen());
-              const res = next.move({ from, to, promotion });
-              if (res) {
-                if (res.captured) playCaptureSound();
-                else playMoveSound();
-                setLastMove({ from, to });
-                setMoves(next.history({ verbose: true }) as Move[]);
-                updateStatus(next);
-              }
-              return next;
-            });
+            executeMove({ from, to, promotion });
           }
         }
       };
 
       engine.current.postMessage(`position fen ${currentGame.fen()}`);
-      engine.current.postMessage(`setoption name Skill Level value ${difficulty}`);
-      engine.current.postMessage(`go depth ${Math.min(15, Math.max(3, difficulty))}`);
+      engine.current.postMessage(`setoption name Skill Level value ${botLevel.skill}`);
+      engine.current.postMessage(`go depth ${botLevel.depth}`);
     }
-  }, [difficulty]);
+  }, [botLevel, increment]);
 
   /* ── Stockfish Worker Setup ── */
   useEffect(() => {
@@ -217,6 +279,7 @@ export default function ChessArena() {
     }
     return () => {
       engine.current?.terminate();
+      if (botTimeoutRef.current) clearTimeout(botTimeoutRef.current);
     };
   }, []);
 
@@ -349,8 +412,11 @@ export default function ChessArena() {
     else setStatus(`Gediş: ${g.turn() === 'w' ? '⚪ Ağlar' : '⚫ Qaralar'}`);
   };
 
-  const formatTime = (s: number) =>
-    `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   /* ── Move Highlight Calculation ── */
   const getMoveOptions = (square: string): boolean => {
@@ -390,6 +456,15 @@ export default function ChessArena() {
       if (res.captured) playCaptureSound();
       else playMoveSound();
 
+      // Add increment if clock is running or started
+      if (increment > 0) {
+        if (game.turn() === 'w') {
+          setWhiteTime(t => t + increment);
+        } else {
+          setBlackTime(t => t + increment);
+        }
+      }
+
       setGame(next);
       setMoves(next.history({ verbose: true }) as Move[]);
       setLastMove({ from, to });
@@ -409,11 +484,11 @@ export default function ChessArena() {
     } catch (e) {
       return false;
     }
-  }, [game, clockRunning, moves.length, mode, roomId, makeBotMove]);
+  }, [game, clockRunning, moves.length, mode, roomId, increment, makeBotMove]);
 
   /* ── Drag & Drop Handler ── */
   const onPieceDrop = (sourceSquare: string, targetSquare: string): boolean => {
-    if (isSpectator || game.isGameOver() || engineWinner) return false;
+    if (isSpectator || game.isGameOver() || engineWinner || isAiThinking) return false;
     if (mode === 'multiplayer' && game.turn() !== myColor) return false;
     if (mode === 'bot' && game.turn() === 'b') return false;
 
@@ -422,7 +497,7 @@ export default function ChessArena() {
 
   /* ── Click-To-Move Handler ── */
   const onSquareClick = (square: string) => {
-    if (isSpectator || game.isGameOver() || engineWinner) return;
+    if (isSpectator || game.isGameOver() || engineWinner || isAiThinking) return;
     if (mode === 'multiplayer' && game.turn() !== myColor) return;
     if (mode === 'bot' && game.turn() === 'b') return;
 
@@ -455,6 +530,39 @@ export default function ChessArena() {
         setOptionSquares({});
       }
     }
+  };
+
+  /* ── Time Control Select Handlers ── */
+  const handleSelectPresetTime = (tc: TimeControlConfig) => {
+    if (clockRunning) {
+      toast.error('Oyun gedərkən vaxtı dəyişmək olmaz');
+      return;
+    }
+    setTimeControl(tc.secs);
+    setIncrement(tc.inc);
+    setActiveTcLabel(tc.label);
+    setWhiteTime(tc.secs);
+    setBlackTime(tc.secs);
+    toast.success(`Vaxt: ${tc.label} (${tc.name}) seçildi`);
+  };
+
+  const handleApplyCustomTime = () => {
+    if (clockRunning) {
+      toast.error('Oyun gedərkən vaxtı dəyişmək olmaz');
+      return;
+    }
+    const mins = Math.max(1, Math.min(120, customMinutes));
+    const inc = Math.max(0, Math.min(60, customInc));
+    const totalSecs = mins * 60;
+    const label = `${mins}+${inc}`;
+
+    setTimeControl(totalSecs);
+    setIncrement(inc);
+    setActiveTcLabel(label);
+    setWhiteTime(totalSecs);
+    setBlackTime(totalSecs);
+    setShowCustomModal(false);
+    toast.success(`Xüsusi vaxt: ${label} tətbiq edildi! ⏱️`);
   };
 
   /* ── Matchmaking ── */
@@ -516,6 +624,8 @@ export default function ChessArena() {
 
   const resign = () => {
     if (isSpectator) return;
+    if (botTimeoutRef.current) clearTimeout(botTimeoutRef.current);
+    setIsAiThinking(false);
     if (mode === 'multiplayer' && roomId) {
       update(ref(db, `games/chess/${roomId}`), { state: myColor === 'w' ? 'resigned_w' : 'resigned_b' });
     } else {
@@ -546,6 +656,8 @@ export default function ChessArena() {
   };
 
   const resetGame = (full = true) => {
+    if (botTimeoutRef.current) clearTimeout(botTimeoutRef.current);
+    setIsAiThinking(false);
     setGame(new Chess());
     setMoves([]);
     setOptionSquares({});
@@ -600,6 +712,99 @@ export default function ChessArena() {
           result={gameResult}
           onRematch={() => { resetGame(); }}
         />
+
+        {/* ── Custom Time Setting Modal ── */}
+        <AnimatePresence>
+          {showCustomModal && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                className="w-full max-w-sm bg-zinc-900 border border-zinc-700 p-6 rounded-3xl shadow-2xl flex flex-col gap-5"
+              >
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <Sliders className="w-5 h-5 text-blue-400" /> Xüsusi Vaxt Rejimi
+                  </h3>
+                  <button onClick={() => setShowCustomModal(false)} className="text-zinc-500 hover:text-white text-sm font-bold">✕</button>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">
+                      Başlanğıc Vaxtı (Dəqiqə)
+                    </label>
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                      {[1, 3, 5, 10, 15, 20, 30, 60].map(m => (
+                        <button
+                          key={m}
+                          onClick={() => setCustomMinutes(m)}
+                          className={`py-1.5 rounded-xl text-xs font-bold transition-all ${customMinutes === m ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                        >
+                          {m} dəq
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-zinc-500 font-bold">Dəqiq:</span>
+                      <input
+                        type="number" min="1" max="120"
+                        value={customMinutes}
+                        onChange={e => setCustomMinutes(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-24 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white font-mono text-sm outline-none focus:border-blue-500"
+                      />
+                      <span className="text-xs text-zinc-400">dəqiqə</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">
+                      Gediş Başına Artım (Saniyə)
+                    </label>
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                      {[0, 1, 2, 3, 5, 10, 15, 30].map(s => (
+                        <button
+                          key={s}
+                          onClick={() => setCustomInc(s)}
+                          className={`py-1.5 rounded-xl text-xs font-bold transition-all ${customInc === s ? 'bg-purple-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                        >
+                          +{s} san
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-zinc-500 font-bold">Dəqiq:</span>
+                      <input
+                        type="number" min="0" max="60"
+                        value={customInc}
+                        onChange={e => setCustomInc(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-24 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white font-mono text-sm outline-none focus:border-purple-500"
+                      />
+                      <span className="text-xs text-zinc-400">saniyə artım</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800 text-center">
+                  <span className="text-xs text-zinc-500">Format: </span>
+                  <span className="text-base font-black text-amber-400 font-mono">{customMinutes}+{customInc}</span>
+                  <span className="text-xs text-zinc-500 ml-1">({customMinutes} dəqiqə, hər gedişdə +{customInc} san)</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={() => setShowCustomModal(false)} className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-sm rounded-xl transition">
+                    İmtina
+                  </button>
+                  <button onClick={handleApplyCustomTime} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-sm rounded-xl transition shadow-lg active:scale-95">
+                    Tətbiq Et
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Draw Offer Notification ── */}
         <AnimatePresence>
@@ -658,16 +863,28 @@ export default function ChessArena() {
           </div>
 
           {/* Opponent Card */}
-          <div className="w-full max-w-[min(100%,65vh)] flex items-center justify-between bg-zinc-900/70 border border-zinc-800 p-3.5 rounded-2xl">
+          <div className={`w-full max-w-[min(100%,65vh)] flex items-center justify-between bg-zinc-900/70 border p-3.5 rounded-2xl transition-all ${
+            isAiThinking ? 'border-purple-500/70 shadow-[0_0_20px_rgba(168,85,247,0.2)]' : 'border-zinc-800'
+          }`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700">
-                {mode === 'bot' ? '🤖' : '⚔️'}
+              <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700 relative">
+                {mode === 'bot' ? botLevel.icon : '⚔️'}
+                {isAiThinking && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-ping" />
+                )}
               </div>
               <div>
-                <div className="font-bold text-white text-sm">
-                  {mode === 'bot' ? 'Stockfish AI (Bot)' : (opponentName || 'Rəqib gözlənilir...')}
+                <div className="font-bold text-white text-sm flex items-center gap-2">
+                  {mode === 'bot' ? `Bot (${botLevel.name})` : (opponentName || 'Rəqib gözlənilir...')}
+                  {isAiThinking && (
+                    <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-full font-mono animate-pulse">
+                      Düşünür... 🧠
+                    </span>
+                  )}
                 </div>
-                <div className="text-xs text-zinc-500">{mode === 'bot' ? `Səviyyə ${difficulty}` : `${opponentElo} ELO`}</div>
+                <div className="text-xs text-zinc-500">
+                  {mode === 'bot' ? `~ ${botLevel.elo} ELO` : `${opponentElo} ELO`}
+                </div>
               </div>
             </div>
             {/* Black Clock */}
@@ -676,6 +893,7 @@ export default function ChessArena() {
               game.turn() === 'b' && clockRunning ? 'text-white border-purple-500/50 bg-purple-500/10' : 'text-zinc-500 border-zinc-800'
             }`}>
               {formatTime(blackTime)}
+              {increment > 0 && <span className="text-[10px] text-zinc-600 block text-right font-sans font-bold">+{increment}s</span>}
             </div>
           </div>
 
@@ -743,38 +961,58 @@ export default function ChessArena() {
               game.turn() === 'w' && clockRunning ? 'text-white border-blue-500/50 bg-blue-500/10' : 'text-zinc-500 border-zinc-800'
             }`}>
               {formatTime(whiteTime)}
+              {increment > 0 && <span className="text-[10px] text-zinc-600 block text-right font-sans font-bold">+{increment}s</span>}
             </div>
           </div>
         </div>
 
         {/* ═══════ SIDEBAR CONTROLS ═══════ */}
-        <div className="w-full lg:w-72 flex flex-col gap-4">
+        <div className="w-full lg:w-80 flex flex-col gap-4">
 
           {/* Status & Options Card */}
           <div className="tdv-card p-5 flex flex-col gap-4">
-            {/* Time Control */}
+            {/* Time Control Selector */}
             <div>
-              <div className="tdv-section-label mb-2">Vaxt Nəzarəti</div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {TIME_CONTROLS.map(tc => (
-                  <button
-                    key={tc.secs}
-                    onClick={() => {
-                      if (!clockRunning) {
-                        setTimeControl(tc.secs);
-                        setWhiteTime(tc.secs);
-                        setBlackTime(tc.secs);
-                      }
-                    }}
-                    className={`py-1.5 rounded-lg text-[11px] font-black transition-all ${timeControl === tc.secs ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
-                  >
-                    {tc.label}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-2">
+                <span className="tdv-section-label">Vaxt Nəzarəti</span>
+                <button
+                  onClick={() => setShowCustomModal(true)}
+                  disabled={clockRunning}
+                  className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition disabled:opacity-50"
+                >
+                  <Sliders className="w-3.5 h-3.5" /> Xüsusi ({activeTcLabel})
+                </button>
               </div>
+
+              <div className="grid grid-cols-3 gap-1.5">
+                {PRESET_TIME_CONTROLS.map(tc => {
+                  const isSelected = activeTcLabel === tc.label;
+                  return (
+                    <button
+                      key={tc.label}
+                      onClick={() => handleSelectPresetTime(tc)}
+                      disabled={clockRunning}
+                      className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white disabled:opacity-50'
+                      }`}
+                    >
+                      <span>{tc.label}</span>
+                      {isSelected && <Check className="w-3 h-3" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {increment > 0 && (
+                <div className="mt-1.5 text-[10px] text-zinc-500 font-mono">
+                  ⏱️ Hər gedişdə saatınıza +{increment} saniyə artım verilir
+                </div>
+              )}
             </div>
 
-            {/* Status */}
+            {/* Game Status */}
             <div>
               <div className="tdv-section-label mb-1">Oyun Statusu</div>
               <div className={`text-base font-black ${status.includes('ŞAH') ? 'text-red-400' : 'text-white'}`}>
@@ -782,19 +1020,58 @@ export default function ChessArena() {
               </div>
             </div>
 
-            {/* Difficulty slider */}
+            {/* AI Difficulty Selector (Bot Mode) */}
             {mode === 'bot' && (
               <div>
-                <div className="tdv-section-label mb-2">Bot Səviyyəsi: {difficulty}</div>
-                <input
-                  type="range" min="1" max="20" value={difficulty}
-                  onChange={e => setDifficulty(+e.target.value)}
-                  className="w-full accent-purple-500 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
-                  <span>Asan</span>
-                  <span>Usta</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="tdv-section-label">AI Gücü (Səviyyə)</span>
+                  <span className="text-xs font-mono font-bold text-purple-400">~{botLevel.elo}</span>
                 </div>
+
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  {BOT_LEVELS.slice(0, 4).map(bl => {
+                    const isSelected = botLevel.level === bl.level;
+                    return (
+                      <button
+                        key={bl.level}
+                        onClick={() => {
+                          setBotLevel(bl);
+                          toast.success(`AI: ${bl.name} (${bl.elo} ELO) seçildi`);
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center gap-2 border ${
+                          isSelected
+                            ? 'bg-purple-600/30 border-purple-500 text-white shadow-md'
+                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
+                        }`}
+                      >
+                        <span className="text-base">{bl.icon}</span>
+                        <div className="truncate">
+                          <div className="leading-tight font-black">{bl.name}</div>
+                          <div className="text-[10px] text-zinc-500 font-mono">{bl.elo}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Grandmaster option */}
+                <button
+                  onClick={() => {
+                    setBotLevel(BOT_LEVELS[4]);
+                    toast.success('Maksimum Stockfish gücü aktivdir! 🤖');
+                  }}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between border ${
+                    botLevel.level === 5
+                      ? 'bg-red-950/40 border-red-500 text-red-200 shadow-md shadow-red-500/20'
+                      : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🤖</span>
+                    <span className="font-black">Qrossmeyster (Stockfish MAX)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-red-400">2500+</span>
+                </button>
               </div>
             )}
 
