@@ -201,7 +201,7 @@ export default function LeaderboardPage() {
                   #{player.rank}
                 </div>
                 <div className="col-span-6 md:col-span-5 flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs \${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                     player.rank === 1 ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' :
                     player.rank === 2 ? 'bg-zinc-500/20 text-zinc-400 border border-zinc-500/50' :
                     player.rank === 3 ? 'bg-orange-700/20 text-orange-500 border border-orange-700/50' :
