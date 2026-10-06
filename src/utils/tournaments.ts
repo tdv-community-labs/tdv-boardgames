@@ -44,158 +44,22 @@ export const GAME_DETAILS: Record<string, { name: string; icon: string; path: st
 
 const STORAGE_KEY = 'tdv_tournaments_v1';
 
-const INITIAL_TOURNAMENTS: Tournament[] = [
-  {
-    id: 'tdv26-chess-gp',
-    title: 'CANLI TURNİR #TDV26 (Şahmat Qran-Pri)',
-    game: 'chess',
-    gameName: 'Şahmat',
-    maxPlayers: 8,
-    status: 'active',
-    createdAt: Date.now() - 3600000,
-    createdBy: 'Kiber_Qılınc',
-    timeControl: '5 dəq Blitz',
-    prizePool: '1500 XP + Qızıl Çempion Kuboku',
-    players: [
-      { id: 'p1', name: 'Kiber_Qılınc', avatar: '😎', elo: 1450 },
-      { id: 'p2', name: 'Murad_Master', avatar: '🦁', elo: 1380 },
-      { id: 'p3', name: 'Aysel_Chess', avatar: '👑', elo: 1410 },
-      { id: 'p4', name: 'Elmir_TDV', avatar: '⚡', elo: 1320 },
-      { id: 'p5', name: 'Orxan_BTL', avatar: '🦅', elo: 1490 },
-      { id: 'p6', name: 'Leyla_T', avatar: '🎯', elo: 1290 },
-      { id: 'p7', name: 'Kamran_99', avatar: '🐉', elo: 1340 },
-      { id: 'p8', name: 'Nigar_Strateg', avatar: '🦊', elo: 1360 }
-    ],
-    matches: [
-      // 1/4 Final (Round 1)
-      {
-        id: 'm1',
-        round: 1,
-        roundName: '1/4 Final',
-        matchIndex: 0,
-        player1: { id: 'p1', name: 'Kiber_Qılınc', avatar: '😎', elo: 1450 },
-        player2: { id: 'p2', name: 'Murad_Master', avatar: '🦁', elo: 1380 },
-        winner: { id: 'p1', name: 'Kiber_Qılınc', avatar: '😎', elo: 1450 },
-        score: '1 - 0',
-        roomId: 'tourney-tdv26-r1-m1',
-        status: 'completed'
-      },
-      {
-        id: 'm2',
-        round: 1,
-        roundName: '1/4 Final',
-        matchIndex: 1,
-        player1: { id: 'p3', name: 'Aysel_Chess', avatar: '👑', elo: 1410 },
-        player2: { id: 'p4', name: 'Elmir_TDV', avatar: '⚡', elo: 1320 },
-        winner: { id: 'p3', name: 'Aysel_Chess', avatar: '👑', elo: 1410 },
-        score: '1 - 0',
-        roomId: 'tourney-tdv26-r1-m2',
-        status: 'completed'
-      },
-      {
-        id: 'm3',
-        round: 1,
-        roundName: '1/4 Final',
-        matchIndex: 2,
-        player1: { id: 'p5', name: 'Orxan_BTL', avatar: '🦅', elo: 1490 },
-        player2: { id: 'p6', name: 'Leyla_T', avatar: '🎯', elo: 1290 },
-        winner: { id: 'p5', name: 'Orxan_BTL', avatar: '🦅', elo: 1490 },
-        score: '1 - 0',
-        roomId: 'tourney-tdv26-r1-m3',
-        status: 'completed'
-      },
-      {
-        id: 'm4',
-        round: 1,
-        roundName: '1/4 Final',
-        matchIndex: 3,
-        player1: { id: 'p7', name: 'Kamran_99', avatar: '🐉', elo: 1340 },
-        player2: { id: 'p8', name: 'Nigar_Strateg', avatar: '🦊', elo: 1360 },
-        winner: { id: 'p8', name: 'Nigar_Strateg', avatar: '🦊', elo: 1360 },
-        score: '0 - 1',
-        roomId: 'tourney-tdv26-r1-m4',
-        status: 'completed'
-      },
-      // Yarımfinal (Round 2)
-      {
-        id: 'm5',
-        round: 2,
-        roundName: 'Yarımfinal',
-        matchIndex: 0,
-        player1: { id: 'p1', name: 'Kiber_Qılınc', avatar: '😎', elo: 1450 },
-        player2: { id: 'p3', name: 'Aysel_Chess', avatar: '👑', elo: 1410 },
-        roomId: 'tourney-tdv26-r2-m1',
-        status: 'in_progress'
-      },
-      {
-        id: 'm6',
-        round: 2,
-        roundName: 'Yarımfinal',
-        matchIndex: 1,
-        player1: { id: 'p5', name: 'Orxan_BTL', avatar: '🦅', elo: 1490 },
-        player2: { id: 'p8', name: 'Nigar_Strateg', avatar: '🦊', elo: 1360 },
-        roomId: 'tourney-tdv26-r2-m2',
-        status: 'in_progress'
-      },
-      // Böyük Final (Round 3)
-      {
-        id: 'm7',
-        round: 3,
-        roundName: 'Böyük Final',
-        matchIndex: 0,
-        roomId: 'tourney-tdv26-r3-final',
-        status: 'pending'
-      }
-    ]
-  },
-  {
-    id: 'tdv-checkers-cup',
-    title: 'TDV Dama Çempionatı 2026',
-    game: 'checkers',
-    gameName: 'Dama',
-    maxPlayers: 8,
-    status: 'open',
-    createdAt: Date.now() - 1800000,
-    createdBy: 'Tahir_Usta',
-    timeControl: '10 dəq Rapid',
-    prizePool: '1000 XP + Gümüş Medal',
-    players: [
-      { id: 'c1', name: 'Tahir_Usta', avatar: '🧙‍♂️', elo: 1420 },
-      { id: 'c2', name: 'Rəşad_99', avatar: '🥊', elo: 1350 },
-      { id: 'c3', name: 'Sevinc_M', avatar: '🌸', elo: 1280 }
-    ],
-    matches: []
-  },
-  {
-    id: 'tdv-connect4-speed',
-    title: 'Dördünü Birləşdir Sürət Turniri',
-    game: 'connect4',
-    gameName: 'Dördünü Birləşdir',
-    maxPlayers: 4,
-    status: 'open',
-    createdAt: Date.now() - 900000,
-    createdBy: 'Kiber_Sürət',
-    timeControl: '3 dəq Blitz',
-    prizePool: '600 XP',
-    players: [
-      { id: 'u1', name: 'Kiber_Sürət', avatar: '⚡', elo: 1300 },
-      { id: 'u2', name: 'Fərid_TDV', avatar: '🎮', elo: 1250 }
-    ],
-    matches: []
-  }
-];
+const INITIAL_TOURNAMENTS: Tournament[] = [];
 
 export function getStoredTournaments(): Tournament[] {
-  if (typeof window === 'undefined') return INITIAL_TOURNAMENTS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_TOURNAMENTS));
-      return INITIAL_TOURNAMENTS;
+    if (!raw) return [];
+    const list: Tournament[] = JSON.parse(raw);
+    // Purge fake mock tournaments if previously stored
+    const cleaned = list.filter(t => !['tdv26-chess-gp', 'tdv-checkers-cup', 'tdv-connect4-speed'].includes(t.id));
+    if (cleaned.length !== list.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
     }
-    return JSON.parse(raw);
+    return cleaned;
   } catch (e) {
-    return INITIAL_TOURNAMENTS;
+    return [];
   }
 }
 

@@ -18,13 +18,40 @@ interface ChatMessage {
 }
 
 const DEFAULT_MESSAGES: ChatMessage[] = [
-  { id: 'm-init-1', sender: 'TDV_Sistem', text: '🌐 Qlobal Meydana xoş gəlmisiniz! Burada digər oyunçularla söhbət edə və ya duellərə meydan oxuya bilərsiniz.', timestamp: Date.now() - 3600000 },
-  { id: 'm-init-2', sender: 'Kiber_Qılınc', text: 'Salam hamıya! Bu gün saat 20:00-da şahmat turniri başlayır ♟️', timestamp: Date.now() - 1800000 },
-  { id: 'm-init-3', sender: 'Aysel_Chess', text: 'Kim blits oynamaq istəyir? Meydan oxuyun!', timestamp: Date.now() - 600000 }
+  { 
+    id: 'm-init-welcome', 
+    sender: 'TDV_Sistem', 
+    text: '🌐 Qlobal Meydana xoş gəlmisiniz! Digər oyunçularla canlı söhbət edə və ya duellərə meydan oxuya bilərsiniz.', 
+    timestamp: Date.now() 
+  }
 ];
 
 const STORAGE_CHAT_KEY = 'tdv_global_chat_history_v1';
 const STORAGE_NAME_KEY = 'tdv_chat_name';
+
+// Strict deduplication helper by ID and identical sender+text within 3 seconds
+function deduplicateMessages(list: ChatMessage[]): ChatMessage[] {
+  const seenIds = new Set<string>();
+  const seenKeys = new Set<string>();
+  const result: ChatMessage[] = [];
+
+  for (const m of list) {
+    if (!m || !m.text) continue;
+    // Discard old fake mock messages
+    if (m.id === 'm-init-2' || m.id === 'm-init-3') continue;
+
+    if (m.id && seenIds.has(m.id)) continue;
+
+    const timeBucket = Math.round((m.timestamp || 0) / 3000);
+    const contentKey = `${m.sender}:::${m.text.trim()}:::${timeBucket}`;
+    if (seenKeys.has(contentKey)) continue;
+
+    if (m.id) seenIds.add(m.id);
+    seenKeys.add(contentKey);
+    result.push(m);
+  }
+  return result;
+}
 
 export default function GlobalChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -34,9 +61,13 @@ export default function GlobalChat() {
   const [tempName, setTempName] = useState('');
   const [showChallengeMenu, setShowChallengeMenu] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<BroadcastChannel | null>(null);
+  const currentTabId = useRef<string>('');
 
   // Initialize User Identity & Chat History
   useEffect(() => {
+    currentTabId.current = 'tab_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+
     // 1. User Name Resolution
     let activeName = '';
     const unsubAuth = onAuthStateChanged(auth, (u) => {
@@ -59,11 +90,14 @@ export default function GlobalChat() {
       }
     }
 
-    // 2. Load Local Messages
+    // 2. Load Local Messages with deduplication and purging old mock messages
     try {
       const stored = localStorage.getItem(STORAGE_CHAT_KEY);
       if (stored) {
-        setMessages(JSON.parse(stored));
+        const parsed: ChatMessage[] = JSON.parse(stored);
+        const cleaned = deduplicateMessages(parsed);
+        setMessages(cleaned);
+        localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(cleaned));
       } else {
         setMessages(DEFAULT_MESSAGES);
         localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(DEFAULT_MESSAGES));
@@ -79,11 +113,14 @@ export default function GlobalChat() {
       unsubChat = onValue(chatRef, (snap) => {
         if (snap.exists()) {
           const data = snap.val();
-          const parsed = Object.keys(data).map(k => ({ id: k, ...data[k] }));
-          setMessages(parsed);
-          try {
-            localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(parsed));
-          } catch (err) {}
+          const parsed = Object.keys(data).map(k => ({ id: data[k]?.id || k, ...data[k] }));
+          setMessages(prev => {
+            const merged = deduplicateMessages([...prev, ...parsed]);
+            try {
+              localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(merged.slice(-50)));
+            } catch (err) {}
+            return merged;
+          });
         }
       }, (error) => {
         console.warn('Firebase RTDB not connected, using resilient local channel.', error);
@@ -92,14 +129,16 @@ export default function GlobalChat() {
       console.warn('Firebase RTDB init error:', err);
     }
 
-    // 4. Tab-to-Tab BroadcastChannel Synchronization
-    let channel: BroadcastChannel | null = null;
+    // 4. Tab-to-Tab BroadcastChannel Synchronization (SINGLE channel instance per tab)
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      channel = new BroadcastChannel('tdv_global_chat');
+      const channel = new BroadcastChannel('tdv_global_chat');
+      channelRef.current = channel;
       channel.onmessage = (event) => {
+        // Discard messages sent from this exact tab to prevent double display
+        if (event.data?.originTab === currentTabId.current) return;
         if (event.data?.type === 'NEW_MESSAGE' && event.data.message) {
           setMessages(prev => {
-            const next = [...prev, event.data.message];
+            const next = deduplicateMessages([...prev, event.data.message]);
             try {
               localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(next.slice(-50)));
             } catch (e) {}
@@ -112,7 +151,10 @@ export default function GlobalChat() {
     return () => {
       unsubAuth();
       if (unsubChat) unsubChat();
-      if (channel) channel.close();
+      if (channelRef.current) {
+        channelRef.current.close();
+        channelRef.current = null;
+      }
     };
   }, []);
 
@@ -133,19 +175,21 @@ export default function GlobalChat() {
 
   const broadcastAndSaveMessage = (newMsg: ChatMessage) => {
     setMessages(prev => {
-      const updated = [...prev, newMsg];
+      const updated = deduplicateMessages([...prev, newMsg]);
       try {
         localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(updated.slice(-50)));
       } catch (e) {}
       return updated;
     });
 
-    // Broadcast to other tabs
-    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+    // Broadcast to other tabs ONLY (never to this tab)
+    if (channelRef.current) {
       try {
-        const channel = new BroadcastChannel('tdv_global_chat');
-        channel.postMessage({ type: 'NEW_MESSAGE', message: newMsg });
-        channel.close();
+        channelRef.current.postMessage({ 
+          type: 'NEW_MESSAGE', 
+          message: newMsg, 
+          originTab: currentTabId.current 
+        });
       } catch (e) {}
     }
 

@@ -8,7 +8,6 @@ import GlobalChat from '@/components/GlobalChat';
 import RecentFeed from '@/components/RecentFeed';
 
 const GAMES = [
-
   {
     id: "connect4",
     name: "Dördünü Birləşdir",
@@ -17,7 +16,6 @@ const GAMES = [
     color: "from-red-500/20 to-red-900/40",
     borderColor: "border-red-500/30",
     textColor: "text-red-400",
-    players: "0",
     badge: "YENİ"
   },
   {
@@ -28,7 +26,6 @@ const GAMES = [
     color: "from-emerald-500/20 to-emerald-900/40",
     borderColor: "border-emerald-500/30",
     textColor: "text-emerald-400",
-    players: "124",
     badge: "Populyar"
   },
   {
@@ -38,8 +35,7 @@ const GAMES = [
     description: "Sürətli və taktiki. Rəqibin bütün daşlarını vurun.",
     color: "from-blue-500/20 to-blue-900/40",
     borderColor: "border-blue-500/30",
-    textColor: "text-blue-400",
-    players: "89"
+    textColor: "text-blue-400"
   },
   {
     id: "go",
@@ -49,7 +45,6 @@ const GAMES = [
     color: "from-amber-500/20 to-amber-900/40",
     borderColor: "border-amber-500/30",
     textColor: "text-amber-400",
-    players: "45",
     badge: "Yeni"
   },
   {
@@ -60,10 +55,8 @@ const GAMES = [
     color: "from-fuchsia-500/20 to-fuchsia-900/40",
     borderColor: "border-fuchsia-500/30",
     textColor: "text-fuchsia-400",
-    players: "12",
     badge: "Yeni"
   }
-
 ];
 
 function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
@@ -131,8 +124,8 @@ function TiltCard({ game, index }: { game: typeof GAMES[0], index: number }) {
             
             <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-400 text-xs font-bold">
-                <Users className="w-4 h-4" />
-                <span>{game.players} Oyunçu onlayndır</span>
+                <Users className="w-4 h-4 text-emerald-400" />
+                <span>Onlayn PvP & Bot Arenası</span>
               </div>
               <div className={`w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors`}>
                 <ArrowRight className="w-4 h-4" />
@@ -292,8 +285,8 @@ export default function Home() {
               </div>
 
               <div className="text-center w-full">
-                <h3 className="text-lg font-black text-white mb-1">CANLI TURNİR #TDV26</h3>
-                <p className="text-xs text-purple-400 font-bold mb-4">ŞAHMAT QRAN-PRİ • 8 QLADİATOR</p>
+                <h3 className="text-lg font-black text-white mb-1">MƏRKƏZİ TURNİR ARENASI</h3>
+                <p className="text-xs text-purple-400 font-bold mb-4">ÖZ TURNİRİNİ YARAT VƏ YA QOŞUL</p>
                 <Link 
                   href="/tournaments"
                   className="w-full py-3 rounded-xl bg-purple-600/30 hover:bg-purple-600/60 text-purple-200 font-black text-xs uppercase tracking-wider border border-purple-500/40 transition shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:scale-[1.02] flex items-center justify-center gap-2"

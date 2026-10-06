@@ -520,8 +520,22 @@ export default function TournamentsPage() {
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center bg-zinc-950/60 border border-zinc-800 rounded-[2.5rem] text-zinc-500">
-              Turnir seçilməyib. Soldakı siyahıdan bir turnir seçin.
+            <div className="p-12 text-center bg-zinc-950/60 border border-zinc-800 rounded-[2.5rem] text-zinc-500 flex flex-col items-center justify-center min-h-[380px]">
+              <div className="w-16 h-16 rounded-3xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-3xl mb-4 text-purple-400">
+                🏆
+              </div>
+              <h3 className="text-base font-bold text-white mb-1">Aktiv Turnir Yoxdur</h3>
+              <p className="text-xs text-zinc-500 max-w-sm mb-6 leading-relaxed">
+                Hələ ki aktiv turnir yoxdur. İlk rəsmi turniri yaradın və dostlarınıza meydan oxuyun!
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 hover:scale-105 transition shadow-lg shadow-purple-600/30 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>İlk Turniri Təşkil Et</span>
+              </button>
             </div>
           )}
         </div>
