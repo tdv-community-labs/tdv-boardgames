@@ -175,8 +175,10 @@ export class CheckersEngine {
       }
     }
 
-    if (wCount === 0 || wMoves.length === 0) this.winner = 'b';
-    else if (bCount === 0 || bMoves.length === 0) this.winner = 'w';
+    if (wCount === 0) this.winner = 'b';
+    else if (bCount === 0) this.winner = 'w';
+    else if (this.turn === 'w' && wMoves.length === 0) this.winner = 'b';
+    else if (this.turn === 'b' && bMoves.length === 0) this.winner = 'w';
   }
 
   // --- AI LOGIC (Minimax with Alpha-Beta Pruning) ---

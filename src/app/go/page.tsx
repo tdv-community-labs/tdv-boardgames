@@ -204,11 +204,23 @@ export default function GoArena() {
   }, [engine.turn]);
 
   const updateStatus = () => {
-    setStatus(`Gediş sırası: ${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
+    if (engine.winner) {
+      if (engine.winner === 'draw') {
+        setStatus('Heç-heçə!');
+      } else if (mode === 'multiplayer') {
+        setStatus(engine.winner === myColor ? 'Siz Qalib Gəldiniz!' : 'Rəqib Qalib Gəldi!');
+      } else {
+        setStatus(engine.winner === 'b' ? 'Siz Qalib Gəldiniz!' : 'Bot Qalib Gəldi!');
+      }
+    } else {
+      setStatus(`Gediş sırası: ${engine.turn === 'w' ? 'Ağlar' : 'Qaralar'}`);
+    }
   };
 
   const handleCellClick = (r: number, c: number) => {
-    if (engine.turn === 'w') return; // Not our turn
+    if (engine.winner) return;
+    if (mode === 'bot' && engine.turn === 'w') return;
+    if (mode === 'multiplayer' && engine.turn !== myColor) return;
     
     const preCount = getStoneCount(engine.board);
     if (engine.placeStone(r, c)) {
@@ -218,6 +230,26 @@ export default function GoArena() {
       const postCount = getStoneCount(engine.board);
       if (postCount < preCount + 1) playCaptureSound();
       else playMoveSound();
+
+      if (mode === 'multiplayer' && roomId) {
+        update(ref(db, `games/go/${roomId}`), { state: engine.serialize() });
+      }
+    }
+  };
+
+  const handlePass = () => {
+    if (engine.winner) return;
+    if (mode === 'bot' && engine.turn === 'w') return;
+    if (mode === 'multiplayer' && engine.turn !== myColor) return;
+
+    if (engine.pass()) {
+      setBoard([...engine.board.map(row => [...row])]);
+      updateStatus();
+      playMoveSound();
+
+      if (mode === 'multiplayer' && roomId) {
+        update(ref(db, `games/go/${roomId}`), { state: engine.serialize() });
+      }
     }
   };
 
@@ -414,16 +446,61 @@ export default function GoArena() {
         <div className="p-6 rounded-3xl bg-zinc-900/80 border border-emerald-900/50 backdrop-blur-md">
           <h2 className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-2">Go (Weiqi)</h2>
           <div className="text-xl font-bold text-white mb-6">{status}</div>
+
+          {/* Rejim Seçimi */}
+          <div className="flex gap-2 mb-6">
+            <button 
+              onClick={() => { setMode('bot'); resetGame(); }} 
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 ${mode === 'bot' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+            >
+              Bot
+            </button>
+            <button 
+              onClick={() => { setMode('multiplayer'); resetGame(); }}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 ${mode === 'multiplayer' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+            >
+              Canlı
+            </button>
+          </div>
+          
+          {mode === 'multiplayer' && !roomId && (
+            <div className="flex flex-col gap-2 mb-6">
+              <button onClick={findMatch} disabled={isSearching} className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-bold text-white transition disabled:opacity-50">
+                {isSearching ? 'Rəqib axtarılır...' : 'Rəqib Axtar'}
+              </button>
+              <button onClick={createPrivateRoom} className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-sm font-bold text-white transition flex items-center justify-center gap-2">
+                <LinkIcon className="w-4 h-4" /> Dostla Oyna (Link)
+              </button>
+            </div>
+          )}
           
           <div className="flex gap-2">
             <button onClick={resetGame} className="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-white transition flex items-center justify-center gap-2">
               Yenidən Başla
             </button>
-            <button className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-sm font-bold text-red-400 transition flex items-center justify-center gap-2">
+            <button onClick={handlePass} className="flex-1 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-sm font-bold text-amber-400 transition flex items-center justify-center gap-2">
               Pas (Keç)
             </button>
           </div>
+
+          {mode === 'multiplayer' && roomId && !engine.winner && (
+            <button
+              onClick={() => {
+                if (confirm('Təslim olmaq istədiyinizə əminsiniz?')) {
+                  update(ref(db, `games/go/${roomId}`), { state: 'resigned_' + myColor });
+                }
+              }}
+              className="w-full mt-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-sm font-bold text-red-400 transition flex items-center justify-center gap-2"
+            >
+              <Flag className="w-4 h-4" /> Təslim ol
+            </button>
+          )}
         </div>
+
+        {/* In-Game Chat (Multiplayer) */}
+        {mode === 'multiplayer' && roomId && (
+          <GameChat roomId={roomId} gameName="Go" userName={user?.displayName || 'Oyunçu'} />
+        )}
       </div>
     </div>
   );

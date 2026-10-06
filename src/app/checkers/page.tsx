@@ -256,6 +256,10 @@ export default function CheckersArena() {
         
         if (move.jumped) playCaptureSound();
         else playMoveSound();
+
+        if (mode === 'multiplayer' && roomId) {
+          update(ref(db, `games/checkers/${roomId}`), { state: engine.serialize() });
+        }
       } else {
         setSelectedCell(null);
         setValidMoves([]);
@@ -483,6 +487,18 @@ export default function CheckersArena() {
             <button onClick={resetGame} className="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-white transition flex items-center justify-center gap-2">
               Yenidən Başla
             </button>
+            {mode === 'multiplayer' && roomId && !engine.winner && (
+              <button
+                onClick={() => {
+                  if (confirm('Təslim olmaq istədiyinizə əminsiniz?')) {
+                    update(ref(db, `games/checkers/${roomId}`), { state: 'resigned_' + myColor });
+                  }
+                }}
+                className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-sm font-bold text-red-400 transition flex items-center justify-center gap-2"
+              >
+                <Flag className="w-4 h-4" /> Təslim ol
+              </button>
+            )}
           </div>
         </div>
       </div>

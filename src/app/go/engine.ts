@@ -7,8 +7,9 @@ export class GoEngine {
   size: number;
   lastMove: {r: number, c: number} | null;
   winner: 'w' | 'b' | 'draw' | null = null;
-    moveHistory: string[] = [];
+  moveHistory: string[] = [];
   captures: { b: number, w: number } = { b: 0, w: 0 };
+  consecutivePasses: number = 0;
 
   constructor(size = 19) {
     this.size = size;
@@ -18,10 +19,11 @@ export class GoEngine {
     this.winner = null;
     this.moveHistory = [];
     this.captures = { b: 0, w: 0 };
+    this.consecutivePasses = 0;
   }
 
   serialize(): string {
-    return JSON.stringify({ board: this.board, turn: this.turn, lastMove: this.lastMove, winner: this.winner, moveHistory: this.moveHistory, captures: this.captures, size: this.size });
+    return JSON.stringify({ board: this.board, turn: this.turn, lastMove: this.lastMove, winner: this.winner, moveHistory: this.moveHistory, captures: this.captures, size: this.size, consecutivePasses: this.consecutivePasses });
   }
 
   load(dataStr: string) {
@@ -34,6 +36,7 @@ export class GoEngine {
       this.moveHistory = data.moveHistory;
       this.captures = data.captures;
       this.size = data.size;
+      this.consecutivePasses = data.consecutivePasses || 0;
     } catch(e) {}
   }
 
@@ -84,9 +87,39 @@ export class GoEngine {
     if (capturedAny) moveStr += 'x';
     this.moveHistory.push(moveStr);
 
+    this.consecutivePasses = 0;
     this.lastMove = {r, c};
     this.turn = opponent as 'b'|'w';
     return true;
+  }
+
+  pass(): boolean {
+    if (this.winner) return false;
+    this.consecutivePasses++;
+    this.moveHistory.push(`${this.turn === 'b' ? 'Qara' : 'Ağ'} Pas`);
+
+    if (this.consecutivePasses >= 2) {
+      this.calculateWinner();
+    } else {
+      this.turn = this.turn === 'b' ? 'w' : 'b';
+    }
+    return true;
+  }
+
+  calculateWinner() {
+    let bScore = this.captures.b;
+    let wScore = this.captures.w + 6.5; // Komi for white
+
+    for (let r = 0; r < this.size; r++) {
+      for (let c = 0; c < this.size; c++) {
+        if (this.board[r][c] === 'b') bScore++;
+        else if (this.board[r][c] === 'w') wScore++;
+      }
+    }
+
+    if (bScore > wScore) this.winner = 'b';
+    else if (wScore > bScore) this.winner = 'w';
+    else this.winner = 'draw';
   }
 
   hasLiberties(r: number, c: number, color: Piece): boolean {

@@ -458,7 +458,7 @@ export default function Connect4Arena() {
           </div>
         )}
 
-        <GameChat roomId={roomId} gameName="connect4" userName={user?.displayName || "Oyun�u"} />
+        <GameChat roomId={roomId} gameName="connect4" userName={user?.displayName || "Oyunçu"} />
       </div>
     </div>
   );

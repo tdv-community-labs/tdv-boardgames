@@ -47,7 +47,12 @@ export default function OthelloArena() {
         const data = snap.val();
         if (data && data.state && data.state !== engine.serialize()) {
           const newE = new OthelloEngine();
-          newE.load(data.state);
+          if (typeof data.state === 'string' && data.state.startsWith('resigned_')) {
+            newE.load(engine.serialize());
+            newE.winner = data.state === 'resigned_w' ? 'b' : 'w';
+          } else {
+            newE.load(data.state);
+          }
           setEngine(newE);
           setBoard(newE.board);
           setValidMoves(newE.getValidMoves(newE.turn));

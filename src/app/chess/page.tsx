@@ -146,9 +146,10 @@ export default function ChessArena() {
   const [opponentName, setOpponentName] = useState<string>('');
   const [opponentElo, setOpponentElo] = useState<number>(1200);
 
-  /* ── Draw ── */
+  /* ── Draw & Promotion ── */
   const [drawOfferedByMe, setDrawOfferedByMe] = useState(false);
   const [incomingDraw, setIncomingDraw] = useState(false);
+  const [pendingPromotion, setPendingPromotion] = useState<{ from: string; to: string } | null>(null);
 
   const engine = useRef<Worker | null>(null);
   const movesContainerRef = useRef<HTMLDivElement>(null);
@@ -490,11 +491,36 @@ export default function ChessArena() {
     }
   }, [game, clockRunning, moves.length, mode, roomId, increment, makeBotMove]);
 
+  /* ── Check if Move is Pawn Promotion ── */
+  const isPromotionMove = (from: string, to: string): boolean => {
+    const piece = game.get(from as any);
+    if (!piece || piece.type !== 'p') return false;
+    if (piece.color === 'w' && to[1] === '8') return true;
+    if (piece.color === 'b' && to[1] === '1') return true;
+    return false;
+  };
+
+  const handleSelectPromotion = (promoPiece: 'q' | 'n' | 'r' | 'b') => {
+    if (pendingPromotion) {
+      applyMove(pendingPromotion.from, pendingPromotion.to, promoPiece);
+      setPendingPromotion(null);
+    }
+  };
+
   /* ── Drag & Drop Handler ── */
   const onPieceDrop = (sourceSquare: string, targetSquare: string): boolean => {
     if (isSpectator || game.isGameOver() || engineWinner || isAiThinking) return false;
     if (mode === 'multiplayer' && game.turn() !== myColor) return false;
     if (mode === 'bot' && game.turn() === 'b') return false;
+
+    const legalMoves = (game.moves({ square: sourceSquare as any, verbose: true }) as Move[]);
+    const isLegal = legalMoves.some(m => m.to === targetSquare);
+    if (!isLegal) return false;
+
+    if (isPromotionMove(sourceSquare, targetSquare)) {
+      setPendingPromotion({ from: sourceSquare, to: targetSquare });
+      return true;
+    }
 
     return applyMove(sourceSquare, targetSquare);
   };
@@ -523,7 +549,13 @@ export default function ChessArena() {
     const legal = (game.moves({ square: moveFrom as any, verbose: true }) as Move[]).some(m => m.to === square);
 
     if (legal) {
-      applyMove(moveFrom, square);
+      if (isPromotionMove(moveFrom, square)) {
+        setPendingPromotion({ from: moveFrom, to: square });
+        setMoveFrom(null);
+        setOptionSquares({});
+      } else {
+        applyMove(moveFrom, square);
+      }
     } else {
       const piece = game.get(square as any);
       if (piece && piece.color === game.turn()) {
@@ -823,6 +855,69 @@ export default function ChessArena() {
                 <button onClick={acceptDraw} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-sm font-black transition">Qəbul Et</button>
                 <button onClick={rejectDraw} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-sm font-black transition">Rədd Et</button>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Promotion Selection Modal ── */}
+        <AnimatePresence>
+          {pendingPromotion && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-zinc-950 border border-purple-500/40 rounded-3xl p-6 shadow-[0_0_50px_rgba(168,85,247,0.25)] max-w-sm w-full text-center relative overflow-hidden"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mx-auto mb-3 text-purple-400 text-2xl shadow-inner">
+                  👑
+                </div>
+                <h3 className="text-xl font-black text-white mb-1 tracking-tight">Piyadanı Çevir</h3>
+                <p className="text-xs text-zinc-400 mb-6">Piyadanız son xanaya çatdı. Çevriləcəyi fiquru seçin:</p>
+                
+                <div className="grid grid-cols-4 gap-2.5">
+                  <button
+                    onClick={() => handleSelectPromotion('q')}
+                    className="p-3 bg-zinc-900/90 hover:bg-purple-600/30 border border-purple-500/30 hover:border-purple-400 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95 group shadow-sm"
+                  >
+                    <span className="text-4xl filter drop-shadow group-hover:scale-110 transition-transform">{game.turn() === 'w' ? '♕' : '♛'}</span>
+                    <span className="text-xs font-bold text-zinc-300 group-hover:text-purple-300">Vəzir</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectPromotion('n')}
+                    className="p-3 bg-zinc-900/90 hover:bg-cyan-600/30 border border-cyan-500/30 hover:border-cyan-400 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95 group shadow-sm"
+                  >
+                    <span className="text-4xl filter drop-shadow group-hover:scale-110 transition-transform">{game.turn() === 'w' ? '♘' : '♞'}</span>
+                    <span className="text-xs font-bold text-zinc-300 group-hover:text-cyan-300">At</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectPromotion('r')}
+                    className="p-3 bg-zinc-900/90 hover:bg-amber-600/30 border border-amber-500/30 hover:border-amber-400 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95 group shadow-sm"
+                  >
+                    <span className="text-4xl filter drop-shadow group-hover:scale-110 transition-transform">{game.turn() === 'w' ? '♖' : '♜'}</span>
+                    <span className="text-xs font-bold text-zinc-300 group-hover:text-amber-300">Top</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectPromotion('b')}
+                    className="p-3 bg-zinc-900/90 hover:bg-emerald-600/30 border border-emerald-500/30 hover:border-emerald-400 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95 group shadow-sm"
+                  >
+                    <span className="text-4xl filter drop-shadow group-hover:scale-110 transition-transform">{game.turn() === 'w' ? '♗' : '♝'}</span>
+                    <span className="text-xs font-bold text-zinc-300 group-hover:text-emerald-300">Fil</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setPendingPromotion(null)}
+                  className="mt-5 text-xs text-zinc-500 hover:text-zinc-300 transition underline underline-offset-4"
+                >
+                  Gedişi ləğv et
+                </button>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
