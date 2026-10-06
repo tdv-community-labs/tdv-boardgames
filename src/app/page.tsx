@@ -260,34 +260,47 @@ export default function Home() {
               <div className="absolute inset-0 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
               
               <div className="relative w-48 h-48 mb-6">
-                {/* SVG Radar Chart */}
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-[0_0_15px_rgba(168,85,247,0.6)] animate-[spin_30s_linear_infinite]">
-                  <polygon points="50,10 90,38 75,85 25,85 10,38" fill="none" stroke="rgba(168,85,247,0.2)" strokeWidth="0.5" />
-                  <polygon points="50,25 80,45 68,75 32,75 20,45" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5" />
-                  <line x1="50" y1="50" x2="50" y2="10" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
-                  <line x1="50" y1="50" x2="90" y2="38" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
-                  <line x1="50" y1="50" x2="75" y2="85" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
-                  <line x1="50" y1="50" x2="25" y2="85" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
-                  <line x1="50" y1="50" x2="10" y2="38" stroke="rgba(168,85,247,0.4)" strokeWidth="0.5"/>
+                {/* SVG Stationary 6-Bucaq Radar Chart (Sabit Hexagon) */}
+                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]">
+                  {/* Outer Hexagon Grid (Sabit 6-Bucaq) */}
+                  <polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="rgba(168,85,247,0.25)" strokeWidth="0.8" />
+                  {/* Inner Hexagon Grid */}
+                  <polygon points="50,28 69,39 69,61 50,72 31,61 31,39" fill="none" stroke="rgba(168,85,247,0.35)" strokeWidth="0.6" strokeDasharray="1.5,1.5" />
                   
-                  <polygon points="50,20 85,40 60,80 35,70 15,45" fill="rgba(168, 85, 247, 0.2)" stroke="#a855f7" strokeWidth="1.5" className="animate-pulse" />
+                  {/* 6 Radial Axes */}
+                  <line x1="50" y1="50" x2="50" y2="8" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="86" y2="29" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="86" y2="71" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="50" y2="92" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="14" y2="71" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
+                  <line x1="50" y1="50" x2="14" y2="29" stroke="rgba(168,85,247,0.3)" strokeWidth="0.5"/>
                   
-                  <circle cx="50" cy="20" r="2" fill="#fff" className="shadow-[0_0_10px_#fff]" />
-                  <circle cx="85" cy="40" r="2" fill="#fff" />
-                  <circle cx="60" cy="80" r="2" fill="#fff" />
-                  <circle cx="35" cy="70" r="2" fill="#fff" />
-                  <circle cx="15" cy="45" r="2" fill="#fff" />
+                  {/* Active Radar Data 6-Bucaq (Sabit Poliqon) */}
+                  <polygon points="50,18 80,34 76,66 50,82 22,64 24,36" fill="rgba(168, 85, 247, 0.25)" stroke="#c084fc" strokeWidth="1.6" className="animate-pulse" />
+                  
+                  {/* 6 Vertices */}
+                  <circle cx="50" cy="18" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
+                  <circle cx="80" cy="34" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
+                  <circle cx="76" cy="66" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
+                  <circle cx="50" cy="82" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
+                  <circle cx="22" cy="64" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
+                  <circle cx="24" cy="36" r="2.2" fill="#fff" className="drop-shadow-[0_0_6px_#c084fc]" />
                 </svg>
-                {/* Scanner line */}
-                <div className="absolute inset-0 rounded-full border border-purple-500/20" style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(168,85,247,0.4) 100%)', animation: 'spin 2s linear infinite' }}></div>
+
+                {/* Sweeping Radar Scanner Line */}
+                <div className="absolute inset-0 rounded-full border border-purple-500/20 pointer-events-none" style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(168,85,247,0.4) 100%)', animation: 'spin 2.5s linear infinite' }}></div>
               </div>
 
               <div className="text-center w-full">
-                <h3 className="text-lg font-black text-white mb-2">CANLI TURNİR #TDV26</h3>
-                <p className="text-xs text-purple-400 font-bold mb-4">128 İŞTİRAKÇI GÖZLƏYİR</p>
-                <button className="w-full py-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 font-bold border border-purple-500/30 transition shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]">
-                  MÜBARİZƏYƏ QOŞUL
-                </button>
+                <h3 className="text-lg font-black text-white mb-1">CANLI TURNİR #TDV26</h3>
+                <p className="text-xs text-purple-400 font-bold mb-4">ŞAHMAT QRAN-PRİ • 8 QLADİATOR</p>
+                <Link 
+                  href="/tournaments"
+                  className="w-full py-3 rounded-xl bg-purple-600/30 hover:bg-purple-600/60 text-purple-200 font-black text-xs uppercase tracking-wider border border-purple-500/40 transition shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
+                  <Trophy className="w-4 h-4 text-amber-400" />
+                  <span>MÜBARİZƏYƏ QOŞUL</span>
+                </Link>
               </div>
             </div>
           </motion.div>

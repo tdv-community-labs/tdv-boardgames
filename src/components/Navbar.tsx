@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {   Gamepad2, Trophy, User, Users, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download } from 'lucide-react';
+import {   Gamepad2, Trophy, User, Users, LogIn, LogOut, Maximize, Minimize , Volume2, VolumeX , Download, Swords } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import NotificationsPanel from '@/components/NotificationsPanel';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -198,6 +198,10 @@ export function Navbar() {
             <Link href="/leaderboard" className={`text-sm font-bold flex items-center gap-2 transition-colors ${pathname === '/leaderboard' ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-400'}`}>
             <Trophy className="w-4 h-4" />
             <span className="hidden sm:block">Reytinq</span>
+            </Link>
+            <Link href="/tournaments" className={`text-sm font-bold flex items-center gap-2 transition-colors ${pathname === '/tournaments' ? 'text-purple-400' : 'text-zinc-400 hover:text-purple-400'}`}>
+              <Swords className="w-4 h-4" />
+              <span className="hidden sm:block">Turnirlər</span>
             </Link>
 
           <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-full">
