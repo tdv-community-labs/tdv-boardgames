@@ -151,7 +151,7 @@ export default function ChessArena() {
   const [incomingDraw, setIncomingDraw] = useState(false);
 
   const engine = useRef<Worker | null>(null);
-  const movesEndRef = useRef<HTMLDivElement>(null);
+  const movesContainerRef = useRef<HTMLDivElement>(null);
   const botTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -399,9 +399,11 @@ export default function ChessArena() {
     return () => clearInterval(interval);
   }, [clockRunning, game, engineWinner, mode, roomId]);
 
-  /* ── Auto-scroll Move History ── */
+  /* ── Auto-scroll Move History (Container only, never the window) ── */
   useEffect(() => {
-    movesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (movesContainerRef.current) {
+      movesContainerRef.current.scrollTop = movesContainerRef.current.scrollHeight;
+    }
   }, [moves]);
 
   /* ── Status Text ── */
@@ -926,7 +928,7 @@ export default function ChessArena() {
               )}
             </AnimatePresence>
 
-            <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-2 ring-zinc-800/80 bg-zinc-900">
+            <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-2 ring-zinc-800/80 bg-zinc-900 touch-none select-none">
               {mounted ? (
                 <Chessboard
                   position={game.fen()}
@@ -1119,7 +1121,7 @@ export default function ChessArena() {
             <div className="tdv-section-label mb-3 flex items-center gap-2">
               <Swords className="w-3 h-3" /> Gedişlər Tarixçəsi
             </div>
-            <div className="flex-1 overflow-y-auto max-h-[300px] flex flex-col gap-0.5 scrollbar-hide">
+            <div ref={movesContainerRef} className="flex-1 overflow-y-auto max-h-[300px] flex flex-col gap-0.5 scrollbar-hide">
               {moves.reduce((acc, m, i) => {
                 const ci = Math.floor(i / 2);
                 if (!acc[ci]) acc[ci] = [];
@@ -1141,7 +1143,6 @@ export default function ChessArena() {
                   Lövhəyə klikləyib oynamağa başlayın...
                 </div>
               )}
-              <div ref={movesEndRef} />
             </div>
           </div>
 

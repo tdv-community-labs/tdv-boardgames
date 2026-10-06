@@ -248,7 +248,7 @@ export default function OthelloArena() {
           <div className="text-3xl font-black text-white px-5 bg-zinc-900 border border-emerald-500/20 rounded-xl py-1 shadow-inner shadow-black">{wCount}</div>
         </div>
 
-        <div className="w-full max-w-full sm:max-w-[80vh] aspect-square rounded-2xl p-2 md:p-4 bg-zinc-950/90 shadow-[0_0_60px_rgba(16,185,129,0.15)] ring-4 ring-emerald-500/20 relative backdrop-blur-3xl overflow-hidden">
+        <div className="w-full max-w-full sm:max-w-[80vh] aspect-square rounded-2xl p-2 md:p-4 bg-zinc-950/90 shadow-[0_0_60px_rgba(16,185,129,0.15)] ring-4 ring-emerald-500/20 relative backdrop-blur-3xl overflow-hidden touch-none select-none">
           
           {/* Holographic Underglow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15),transparent_70%)] pointer-events-none"></div>

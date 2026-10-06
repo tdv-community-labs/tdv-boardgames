@@ -310,7 +310,7 @@ export default function Connect4Arena() {
             )}
           </AnimatePresence>
 
-          <div className="grid grid-cols-7 gap-2 md:gap-4 w-full aspect-[7/6] relative z-10">
+          <div className="grid grid-cols-7 gap-2 md:gap-4 w-full aspect-[7/6] relative z-10 touch-none select-none">
             {board.map((row, r) => 
               row.map((cell, c) => {
                 const isLast = engine.lastMove?.r === r && engine.lastMove?.c === c;

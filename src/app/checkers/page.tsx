@@ -330,7 +330,7 @@ export default function CheckersArena() {
         </div>
 
         {/* Custom Checkerboard (Cyberpunk Laser Grid) */}
-        <div className="w-full max-w-[600px] aspect-square rounded-2xl p-2 md:p-4 shadow-[0_0_60px_rgba(220,38,38,0.15)] ring-4 ring-red-500/20 bg-zinc-950/90 relative backdrop-blur-3xl overflow-hidden">
+        <div className="w-full max-w-[600px] aspect-square rounded-2xl p-2 md:p-4 shadow-[0_0_60px_rgba(220,38,38,0.15)] ring-4 ring-red-500/20 bg-zinc-950/90 relative backdrop-blur-3xl overflow-hidden touch-none select-none">
           {/* Holographic Underglow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.15),transparent_70%)] pointer-events-none"></div>
 
