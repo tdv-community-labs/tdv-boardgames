@@ -9,12 +9,12 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/tdv-community-labs/tdv-boardgames/main/public/icon.png",
+      "src": "/assets/tdv-logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://raw.githubusercontent.com/tdv-community-labs/tdv-boardgames/main/public/icon.png",
+      "src": "/assets/tdv-logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -24,7 +24,7 @@ export default function GlobalUXEngine() {
     { name: "Qo (Go)", path: "/go", icon: "⚪" },
     { name: "Liderlər lövhəsi", path: "/leaderboard", icon: "🏆" },
     { name: "Profil", path: "/profile", icon: "👤" },
-    { name: "Mərkəzi Hub", path: "https://tdv-community-hubs.vercel.app", icon: "🌌" },
+    { name: "Mərkəzi Hub", path: "https://tdv-community-labs.github.io/tdv-hub/", icon: "🌌" },
     { name: "TDV Games", path: "https://tdv-games.vercel.app", icon: "🎮" },
     { name: "E-School", path: "https://tdv-e-school.vercel.app", icon: "📚" }
   ];

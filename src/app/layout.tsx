@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "TDV Arena | Şahmat & Dama Klubu",
   manifest: "/manifest.json", 
   description: "TDV Community Labs tərəfindən yaradılmış onlayn stolüstü oyunlar arenası.",
+  icons: {
+    icon: "/assets/tdv-logo.png",
+    apple: "/assets/tdv-logo.png",
+  },
 };
 
 export default function RootLayout({
