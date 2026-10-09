@@ -11,12 +11,21 @@ const jbMono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jb-mono' }
 
 export const viewport = { themeColor: '#f59e0b' };
 export const metadata: Metadata = {
-  title: "TDV Arena | Şahmat & Dama Klubu",
+  title: "TDV Arena | Şahmat, Dama, Reversi & Go Portalı",
   manifest: "/manifest.json", 
-  description: "TDV Community Labs tərəfindən yaradılmış onlayn stolüstü oyunlar arenası.",
+  description: "TDV Community Labs tərəfindən yaradılmış onlayn intellektual stolüstü oyunlar arenası. Stockfish AI, 1v1 PvP otaqları və qlobal reytinq.",
   icons: {
     icon: "/assets/tdv-logo.png",
     apple: "/assets/tdv-logo.png",
+  },
+  openGraph: {
+    title: "TDV Arena | Şahmat, Dama, Reversi & Go Portalı",
+    description: "TDV Community Labs tərəfindən yaradılmış onlayn intellektual stolüstü oyunlar arenası.",
+    url: "https://tdv-boardgames.vercel.app",
+    siteName: "TDV Boardgames",
+    images: [{ url: "/assets/tdv-logo.png", width: 512, height: 512, alt: "TDV Logo" }],
+    locale: "az_AZ",
+    type: "website",
   },
 };
 
