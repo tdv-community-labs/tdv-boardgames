@@ -1033,8 +1033,8 @@ export default function ChessArena() {
                     lightSquareStyle: { backgroundColor: THEMES[theme].light },
                     squareStyles: combinedSquares,
                     animationDurationInMs: 150,
-                    onPieceDrop: ({ sourceSquare, targetSquare }) => onPieceDrop(sourceSquare, targetSquare ?? ''),
-                    onSquareClick: ({ square }) => onSquareClick(square),
+                    onPieceDrop: ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare?: string | null }) => onPieceDrop(sourceSquare, targetSquare ?? ''),
+                    onSquareClick: ({ square }: { square: string }) => onSquareClick(square),
                   }}
                 />
               ) : (
