@@ -1026,16 +1026,14 @@ export default function ChessArena() {
             <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.15)] ring-2 ring-zinc-800/80 bg-zinc-900 touch-none select-none">
               {mounted ? (
                 <Chessboard
-                  options={{
-                    position: game.fen(),
-                    boardOrientation: myColor === 'w' ? 'white' : 'black',
-                    darkSquareStyle: { backgroundColor: THEMES[theme].dark },
-                    lightSquareStyle: { backgroundColor: THEMES[theme].light },
-                    squareStyles: combinedSquares,
-                    animationDurationInMs: 150,
-                    onPieceDrop: ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare?: string | null }) => onPieceDrop(sourceSquare, targetSquare ?? ''),
-                    onSquareClick: ({ square }: { square: string }) => onSquareClick(square),
-                  }}
+                  position={game.fen()}
+                  boardOrientation={myColor === 'w' ? 'white' : 'black'}
+                  customDarkSquareStyle={{ backgroundColor: THEMES[theme].dark }}
+                  customLightSquareStyle={{ backgroundColor: THEMES[theme].light }}
+                  customSquareStyles={combinedSquares}
+                  animationDuration={150}
+                  onPieceDrop={onPieceDrop}
+                  onSquareClick={onSquareClick}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-600">
