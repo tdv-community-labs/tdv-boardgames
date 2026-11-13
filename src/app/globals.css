@@ -7,17 +7,18 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 :root {
-  --bg-base:      #09090b;   /* zinc-950 */
-  --bg-card:      #18181b;   /* zinc-900 */
-  --bg-surface:   #27272a;   /* zinc-800 */
-  --border:       #3f3f46;   /* zinc-700 */
-  --border-muted: #27272a;   /* zinc-800 */
-  --text-primary: #fafafa;   /* white */
-  --text-muted:   #a1a1aa;   /* zinc-400 */
-  --text-subtle:  #52525b;   /* zinc-600 */
+  color-scheme: light dark;
+  --bg-base:      light-dark(#f8fafc, #09090b);   /* 60% Canvas / Base */
+  --bg-card:      light-dark(#ffffff, #18181b);   /* 30% Surface / Cards */
+  --bg-surface:   light-dark(#f1f5f9, #27272a);   /* 30% Sub-surface */
+  --border:       light-dark(#e2e8f0, #3f3f46);   /* 30% Borders */
+  --border-muted: light-dark(#cbd5e1, #27272a);
+  --text-primary: light-dark(#09090b, #fafafa);
+  --text-muted:   light-dark(#64748b, #a1a1aa);
+  --text-subtle:  light-dark(#94a3b8, #52525b);
+  --accent-gold:  #f59e0b;                        /* 10% Amber / Gold Accent */
   --accent-blue:  #3b82f6;
   --accent-green: #10b981;
-  --accent-gold:  #f59e0b;
   --radius-sm:    0.5rem;
   --radius-md:    0.75rem;
   --radius-lg:    1rem;
@@ -34,6 +35,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 body {
@@ -44,14 +47,16 @@ body {
   overflow-x: hidden;
 }
 
-/* ── Custom Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--bg-surface);
-  border-radius: 99px;
+/* ── Custom Scrollbar (Fallback) ── */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-surface);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border); }
 }
-::-webkit-scrollbar-thumb:hover { background: var(--border); }
 
 /* ── Selection ── */
 ::selection {
